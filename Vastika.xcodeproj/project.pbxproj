@@ -152,6 +152,7 @@
 		108432AA298D280B00DCC19A /* load_percentage.gif in Resources */ = {isa = PBXBuildFile; fileRef = 108432A8298D280B00DCC19A /* load_percentage.gif */; };
 		108432EC2993B01400DCC19A /* chargingGrid.gif in Resources */ = {isa = PBXBuildFile; fileRef = 108432EB2993B01300DCC19A /* chargingGrid.gif */; };
 		10BCE17C2983AB9400D3F296 /* GaugeVWP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BCE17B2983AB9400D3F296 /* GaugeVWP.swift */; };
+		10CC5EAC29F1166F009250C9 /* new_battery_discarging.gif in Resources */ = {isa = PBXBuildFile; fileRef = 10CC5EAB29F1166F009250C9 /* new_battery_discarging.gif */; };
 		10E7183F29A8E41D008EB4A2 /* highAlt.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 10E7183E29A8E41D008EB4A2 /* highAlt.mp4 */; };
 		10EAADF52988E8EA00E62B21 /* GaugeVMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EAADF42988E8EA00E62B21 /* GaugeVMain.swift */; };
 		10EAADF72989160300E62B21 /* GaugeLOWHIgh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EAADF62989160300E62B21 /* GaugeLOWHIgh.swift */; };
@@ -316,6 +317,7 @@
 		108432A8298D280B00DCC19A /* load_percentage.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = load_percentage.gif; sourceTree = "<group>"; };
 		108432EB2993B01300DCC19A /* chargingGrid.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = chargingGrid.gif; sourceTree = "<group>"; };
 		10BCE17B2983AB9400D3F296 /* GaugeVWP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GaugeVWP.swift; sourceTree = "<group>"; };
+		10CC5EAB29F1166F009250C9 /* new_battery_discarging.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = new_battery_discarging.gif; sourceTree = "<group>"; };
 		10E7183E29A8E41D008EB4A2 /* highAlt.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = highAlt.mp4; sourceTree = "<group>"; };
 		10EAADF42988E8EA00E62B21 /* GaugeVMain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GaugeVMain.swift; sourceTree = "<group>"; };
 		10EAADF62989160300E62B21 /* GaugeLOWHIgh.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GaugeLOWHIgh.swift; sourceTree = "<group>"; };
@@ -787,6 +789,7 @@
 				108432A7298D280A00DCC19A /* load_percentage_green.gif */,
 				108432A8298D280B00DCC19A /* load_percentage.gif */,
 				10637A8B296FD3E20004AFB3 /* lw-error.gif */,
+				10CC5EAB29F1166F009250C9 /* new_battery_discarging.gif */,
 				10637A8C296FD3E20004AFB3 /* medium_battery.gif */,
 			);
 			path = "GIF Image";
@@ -884,6 +887,7 @@
 				1050D9F92980EAD200E789C4 /* Montserrat-Thin.ttf in Resources */,
 				10637A90296FD3E30004AFB3 /* medium_battery.gif in Resources */,
 				1050D9F02980EAC700E789C4 /* Montserrat-Medium.ttf in Resources */,
+				10CC5EAC29F1166F009250C9 /* new_battery_discarging.gif in Resources */,
 				104E16882980E7D200BBBE9A /* Montserrat-LightItalic.ttf in Resources */,
 				1050D9D82980EAA600E789C4 /* Montserrat-Bold.ttf in Resources */,
 				1050D9D22980EA8D00E789C4 /* Montserrat-Black.ttf in Resources */,

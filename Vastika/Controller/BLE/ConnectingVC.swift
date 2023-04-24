@@ -93,18 +93,40 @@ class ConnectingVC: UIViewController,BluetoothDelegate {
         }
         else
         {
-            let alert = UIAlertController(title: webServices.AppName, message: "Device is disconnected. Try to reconnect.", preferredStyle: UIAlertController.Style.alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
-               
-                self.appDelegate.bluetoothManager.delegate = self
-                self.appDelegate.peripheral = self.peripheral
-                self.appDelegate.bluetoothManager.connectPeripheral(self.peripheral)
-                self.appDelegate.bluetoothManager.discoverCharacteristics()
-                self.services = self.appDelegate.bluetoothManager.connectedPeripheral?.services
-                self.bluetoothManager.delegate = self
-            }))
             
-            self.present(alert, animated: true, completion: nil)
+            let alertWindow = UIWindow(frame: UIScreen.main.bounds)
+                alertWindow.rootViewController = UIViewController()
+
+                let alertController = UIAlertController(title: webServices.AppName, message: "Device is disconnected. Try to reconnect.", preferredStyle: UIAlertController.Style.alert)
+                alertController.addAction(UIAlertAction(title: "Close", style: UIAlertAction.Style.cancel, handler: { _ in
+                    alertWindow.isHidden = true
+                    self.appDelegate.bluetoothManager.delegate = self
+                    self.appDelegate.peripheral = self.peripheral
+                    self.appDelegate.bluetoothManager.connectPeripheral(self.peripheral)
+                    self.appDelegate.bluetoothManager.discoverCharacteristics()
+                    self.services = self.appDelegate.bluetoothManager.connectedPeripheral?.services
+                    self.bluetoothManager.delegate = self
+                }))
+                
+                alertWindow.windowLevel = UIWindow.Level.alert + 1;
+                alertWindow.makeKeyAndVisible()
+                alertWindow.rootViewController?.present(alertController, animated: true, completion: nil)
+            
+
+//            
+//            
+//            let alert = UIAlertController(title: webServices.AppName, message: "Device is disconnected. Try to reconnect.", preferredStyle: UIAlertController.Style.alert)
+//            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
+//               
+//                self.appDelegate.bluetoothManager.delegate = self
+//                self.appDelegate.peripheral = self.peripheral
+//                self.appDelegate.bluetoothManager.connectPeripheral(self.peripheral)
+//                self.appDelegate.bluetoothManager.discoverCharacteristics()
+//                self.services = self.appDelegate.bluetoothManager.connectedPeripheral?.services
+//                self.bluetoothManager.delegate = self
+//            }))
+//            
+//            self.present(alert, animated: true, completion: nil)
         }
       
     }

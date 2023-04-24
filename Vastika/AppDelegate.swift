@@ -22,6 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var audioActive : Int = 1
     var batteryName : String = "Tubular"
     var tappedToggelSwitch : Bool = false
+    var gridActive : Bool = true
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         self.storyboard = UIStoryboard.init(name: "Main", bundle: nil)
@@ -34,6 +35,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         {
             self.setHomeVieew()
         }
+        
+        
+        let gridF = UserDefaults.standard.object(forKey: "gd") as? String
+        if gridF == "false" || gridF == nil
+        {
+            self.gridActive = false
+        }
+        else
+        {
+            self.gridActive = true
+        }
+
         
         let battry = UserDefaults.standard.object(forKey: "battery") as? String
         if battry?.count != 0 && battry != nil

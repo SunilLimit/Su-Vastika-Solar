@@ -21,10 +21,19 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
     @IBOutlet weak var lblBuzzer: UILabel!
     @IBOutlet weak var txtFieldAmount: UITextField!
     @IBOutlet weak var priceView: UIView!
+    @IBOutlet weak var lblNewSolarResourcePriority: UILabel!
     @IBOutlet weak var gdView: UIView!
     @IBOutlet weak var lblSolarRP: UILabel!
     @IBOutlet weak var gridChargingHeight: NSLayoutConstraint!
+    @IBOutlet weak var alertView: UIView!
+    @IBOutlet weak var innerAlartView: UIView!
+    @IBOutlet weak var lblAlertDetails: UILabel!
+    @IBOutlet weak var btnOK: UIButton!
+    @IBOutlet weak var btnCancel: UIButton!
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    @IBOutlet weak var btnManual: UIButton!
+    @IBOutlet weak var btnSupport: UIButton!
+
     var deviceId = String()
     var arrayUPSType = NSMutableArray()
     var arrayBatteryType = NSMutableArray()
@@ -33,6 +42,9 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
     var arrayAmbientTemp = NSMutableArray()
     var arrayBuzzer = NSMutableArray()
     var arrayResourcePriority = NSMutableArray()
+    var arrayNewResourcePriority = NSMutableArray()
+    var arrayNewResourcePriorityValues = NSMutableArray()
+
     var arrayPerUnit = NSMutableArray()
     var toolBarTextField = UIToolbar()
     var arrayGridCharging = NSMutableArray()
@@ -41,6 +53,7 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
     var toolBar = UIToolbar()
     var selectedId = String()
     var dicrDetails = NSDictionary()
+    var gridChargingCurrentValue : Int = 0
     @IBOutlet weak var scrlView: UIScrollView!
     @IBOutlet weak var scrlHeight: NSLayoutConstraint!
     @IBOutlet weak var setBottomView: UIView!
@@ -53,7 +66,7 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
         self.priceView.layer.borderColor = UIColor.black.cgColor
         self.priceView.clipsToBounds = true
         
-        let height =  200
+        let height = 00
         self.scrlView.contentSize = CGSize(width: self.scrlView.frame.size.width, height: CGFloat(height))
         self.scrlHeight.constant = CGFloat(height)
         
@@ -102,16 +115,24 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
         dict = ["name" : "10%","ide" : "6"]
         self.arrayLowVeltage.add(dict)
         
-        dict = ["name" : "Enable grid when battery at 13 V","ide" : "1"]
-        self.arrayResourcePriority.add(dict)
-        dict = ["name" : "Enable grid when battery at 12.2 V","ide" : "2"]
-        self.arrayResourcePriority.add(dict)
-        dict = ["name" : "Enable grid when battery at 11 V","ide" : "3"]
-        self.arrayResourcePriority.add(dict)
+       
+        self.btnOK.layer.cornerRadius = self.btnOK.frame.size.height / 2
+        self.btnOK.clipsToBounds = true
         
+        self.btnCancel.layer.cornerRadius = self.btnCancel.frame.size.height / 2
+        self.btnCancel.clipsToBounds = true
+        
+        self.btnSupport.layer.cornerRadius = self.btnSupport.frame.size.height / 2
+        self.btnSupport.clipsToBounds = true
+        
+        self.btnManual.layer.cornerRadius = self.btnManual.frame.size.height / 2
+        self.btnManual.clipsToBounds = true
+
+        self.innerAlartView.layer.cornerRadius = 20
+        self.innerAlartView.clipsToBounds = true
 
        
-        dict = ["name" : "Disabe","ide" : "2"]
+        dict = ["name" : "Disable","ide" : "2"]
         self.arrayGridCharging.add(dict)
         dict = ["name" : "Enable","ide" : "3"]
         self.arrayGridCharging.add(dict)
@@ -124,8 +145,8 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
             self.dicrDetails = appDelegate.globalDict
             self.setBottomView.isHidden = true
             self.setUpBLEData()
-            self.gdView.isHidden = true
-            self.gridChargingHeight.constant = 0
+            self.gdView.isHidden = false
+            self.gridChargingHeight.constant = 60
         }
         else
         {
@@ -261,27 +282,35 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
         switch (gridCurrent) {
             case "5":
                self.lblGridCharing.text = "2.5A"
+                self.gridChargingCurrentValue = 5
               break;
             case "6":
                self.lblGridCharing.text = "5A"
+                self.gridChargingCurrentValue = 6
                 break;
             case "7":
                 self.lblGridCharing.text = "10A"
+                self.gridChargingCurrentValue = 7
                 break;
             case "8":
                 self.lblGridCharing.text = "15A"
+                self.gridChargingCurrentValue = 8
                 break;
             case "1":
                 self.lblGridCharing.text = "2.5 A"
+                self.gridChargingCurrentValue = 5
                 break;
             case "2":
                 self.lblGridCharing.text = "5 A"
+                self.gridChargingCurrentValue = 6
                 break;
             case "3":
                 self.lblGridCharing.text = "10 A"
+                self.gridChargingCurrentValue = 7
                 break;
             case "4":
                 self.lblGridCharing.text = "15 A"
+                self.gridChargingCurrentValue = 8
                 break;
             default:
                 self.lblGridCharing.text = "--"
@@ -337,35 +366,104 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
                 self.lblLowVoltageCut.text = "5%"
                 break
         }
+        
+        
+        let dcBus = self.dicrDetails.object(forKey: "dcbus") as? String
+        if dcBus == "12"
+        {
+            self.arrayNewResourcePriority.removeAllObjects()
+            var dict = ["name" : "Enable Grid when battery at 13 V","ide" : "5"]
+            self.arrayNewResourcePriority.add(dict)
+            dict = ["name" : "Enable Grid when battery at 12.2 V","ide" : "6"]
+            self.arrayNewResourcePriority.add(dict)
+            dict = ["name" : "Enable Grid when battery at 11 V","ide" : "7"]
+            self.arrayNewResourcePriority.add(dict)
+            
+            self.arrayNewResourcePriorityValues.removeAllObjects()
+            dict = ["name" : "13","ide" : "5"]
+            self.arrayNewResourcePriorityValues.add(dict)
+            dict = ["name" : "12.2","ide" : "6"]
+            self.arrayNewResourcePriorityValues.add(dict)
+            dict = ["name" : "11","ide" : "7"]
+            self.arrayNewResourcePriorityValues.add(dict)
+        }
+        else if dcBus == "24"
+        {
+            self.arrayNewResourcePriority.removeAllObjects()
+            var dict = ["name" : "Enable Grid when battery at 26.0 V","ide" : "5"]
+            self.arrayNewResourcePriority.add(dict)
+            dict = ["name" : "Enable Grid when battery at 25.2 V","ide" : "6"]
+            self.arrayNewResourcePriority.add(dict)
+            dict = ["name" : "Enable Grid when battery at 24.0 V","ide" : "7"]
+            self.arrayNewResourcePriority.add(dict)
+            
+            self.arrayNewResourcePriorityValues.removeAllObjects()
+            dict = ["name" : "26.0","ide" : "5"]
+            self.arrayNewResourcePriorityValues.add(dict)
+            dict = ["name" : "25.2","ide" : "6"]
+            self.arrayNewResourcePriorityValues.add(dict)
+            dict = ["name" : "24.0","ide" : "7"]
+            self.arrayNewResourcePriorityValues.add(dict)
+        }
+        else
+        {
+            self.arrayNewResourcePriority.removeAllObjects()
+            var dict = ["name" : "Enable Grid when battery at 52.0 V","ide" : "5"]
+            self.arrayNewResourcePriority.add(dict)
+            dict = ["name" : "Enable Grid when battery at 50.4 V","ide" : "6"]
+            self.arrayNewResourcePriority.add(dict)
+            dict = ["name" : "Enable Grid when battery at 48.0 V","ide" : "7"]
+            self.arrayNewResourcePriority.add(dict)
+            
+            self.arrayNewResourcePriorityValues.removeAllObjects()
+            dict = ["name" : "52.0","ide" : "5"]
+            self.arrayNewResourcePriorityValues.add(dict)
+            dict = ["name" : "50.4","ide" : "6"]
+            self.arrayNewResourcePriorityValues.add(dict)
+            dict = ["name" : "48.0","ide" : "7"]
+            self.arrayNewResourcePriorityValues.add(dict)
+        }
 
-        let rPreority = self.dicrDetails.object(forKey: "setting_resource_priority") as? String
-//
-//        switch (rPreority) {
-//             case "1":
-//                self.lblResourcePreiority.text = "Enable grid when battery at 13 V"
-//               break;
-//             case "2":
-//                self.lblResourcePreiority.text = "Enable grid when battery at 12.2 V"
-//                 break;
-//             case "3":
-//                self.lblResourcePreiority.text = "Enable grid when battery at 11 V"
-//               break;
-//             case "4":
-//                self.lblResourcePreiority.text = "-"
-//               break;
-//             case "5":
-//                self.lblResourcePreiority.text = "Enable grid when battery at 13 V"
-//               break;
-//             case "6":
-//                self.lblResourcePreiority.text =  "Enable grid when battery at 12.2 V"
-//               break;
-//             case "7":
-//                self.lblResourcePreiority.text =  "Enable grid when battery at 11 V"
-//               break;
-//             default:
-//                self.lblResourcePreiority.text =  "-"
-//               break;
-//           }
+        let rPreority = self.dicrDetails.object(forKey: "setting_resource_priorty") as? String
+
+        switch (rPreority) {
+             case "1":
+                let dict = self.arrayNewResourcePriority[0] as? NSDictionary
+                let name = dict?.object(forKey: "name") as? String
+                self.lblNewSolarResourcePriority.text = name
+               break;
+             case "2":
+                let dict = self.arrayNewResourcePriority[1] as? NSDictionary
+                let name = dict?.object(forKey: "name") as? String
+                self.lblNewSolarResourcePriority.text = name
+                 break;
+             case "3":
+                let dict = self.arrayNewResourcePriority[2] as? NSDictionary
+                let name = dict?.object(forKey: "name") as? String
+                self.lblNewSolarResourcePriority.text = name
+               break;
+             case "4":
+                self.lblNewSolarResourcePriority.text = "-"
+               break;
+             case "5":
+                let dict = self.arrayNewResourcePriority[0] as? NSDictionary
+                let name = dict?.object(forKey: "name") as? String
+                self.lblNewSolarResourcePriority.text = name
+               break;
+             case "6":
+                let dict = self.arrayNewResourcePriority[1] as? NSDictionary
+                let name = dict?.object(forKey: "name") as? String
+                self.lblNewSolarResourcePriority.text =  name
+               break;
+             case "7":
+                let dict = self.arrayNewResourcePriority[2] as? NSDictionary
+                let name = dict?.object(forKey: "name") as? String
+                self.lblNewSolarResourcePriority.text =  name
+               break;
+             default:
+                self.lblNewSolarResourcePriority.text =  "-"
+               break;
+           }
         
         
         
@@ -500,7 +598,7 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
                            break
                        case 999999:
                            // Grid charging status for ble
-                           dict.setValue(self.selectedId, forKey: "setting_grid_charging")
+                           dict.setValue(self.selectedId, forKey: "setting_grid_charging_current")
 
                            break
                        case 9999999:
@@ -513,6 +611,8 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
                            dict.setValue(self.selectedId, forKey: "setting_resource_priorty")
                           
                            break
+                       case 888888:
+                           dict.setValue(self.selectedId, forKey: "setting_resource_priorty")
                        case 999999999:
                            // Electricity per unit not for ble
                           
@@ -1159,7 +1259,24 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
     }
     
    
+    @IBAction func tapUserManual(_ sender: Any) {
+        self.lblAlertDetails.text = "Comming Soon..."
+        self.alertView.isHidden = false
+        
+    }
     
+    @IBAction func tapSupport(_ sender: Any) {
+        self.lblAlertDetails.text = "Toll-free : 1800-202-4423"
+        self.alertView.isHidden = false
+    }
+    
+    @IBAction func tapCancel(_ sender: Any) {
+        self.alertView.isHidden = true
+    }
+    
+    @IBAction func tapOK(_ sender: Any) {
+        self.alertView.isHidden = true
+    }
     
     //=====================================================
      // MARK: - UIPickerView delegate datasource method
@@ -1199,6 +1316,10 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
          else if self.pickerView.tag == 999999999
          {
              return self.currencyList.count
+         }
+         else if self.pickerView.tag == 888888
+         {
+             return self.arrayNewResourcePriority.count
          }
          else
          {
@@ -1243,8 +1364,12 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
           }
          else if self.pickerView.tag == 999999999
          {
-          
              value = self.currencyList[row].country + "(" + self.currencyList[row].code + ")"
+         }
+         else if self.pickerView.tag == 888888
+         {
+             let dict = self.arrayNewResourcePriority[row] as? NSDictionary
+             value = (dict?.object(forKey: "name") as? String)!
          }
           else
           {
@@ -1277,6 +1402,9 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
              let dict = self.arrayGrid[row] as? NSDictionary
              self.lblGridCharing.text = (dict?.object(forKey: "name") as? String)!
              self.selectedId = (dict?.object(forKey: "ide") as? String)!
+             UserDefaults.standard.set(self.selectedId, forKey: "pValue")
+             UserDefaults.standard.synchronize()
+             self.gridChargingCurrentValue = Int(self.selectedId)!
 
          }
           else if self.pickerView.tag == 99999
@@ -1288,11 +1416,44 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
           }
           else if self.pickerView.tag == 999999
           {
+              print(self.gridChargingCurrentValue)
               let dict = self.arrayGridCharging[row] as? NSDictionary
               self.lblTemperature.text = (dict?.object(forKey: "name") as? String)!
               self.selectedId = (dict?.object(forKey: "ide") as? String)!
-
+              if self.selectedId == "3"
+              {
+                  var value = UserDefaults.standard.object(forKey: "pValue") as? String
+                  UserDefaults.standard.set("true", forKey: "gd")
+                  
+                  if value == "" || value?.count == 0 || value == nil
+                  {
+                      value = "5"
+                  }
+                  
+                  self.selectedId = value!
+                  print(self.selectedId)
+                  
+              }else
+              {
+                  UserDefaults.standard.set("false", forKey: "gd")
+                  self.selectedId = "0"
+                  print(self.selectedId)
+              }
+             
+              UserDefaults.standard.synchronize()
           }
+         else if self.pickerView.tag == 888888
+         {
+             let dict = self.arrayNewResourcePriority[row] as? NSDictionary
+             let dictNp = self.arrayNewResourcePriorityValues[row] as? NSDictionary
+
+             self.lblNewSolarResourcePriority.text = (dict?.object(forKey: "name") as? String)!
+             self.selectedId = (dict?.object(forKey: "ide") as? String)!
+             let value = (dictNp?.object(forKey: "name") as? String)!
+             UserDefaults.standard.set(value, forKey: "gdv")
+             UserDefaults.standard.synchronize()
+
+         }
           else if self.pickerView.tag == 9999999
           {
               let dict = self.arrayBuzzer[row] as? NSDictionary
@@ -1318,3 +1479,4 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
     
     
 }
+

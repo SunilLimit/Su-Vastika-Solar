@@ -313,30 +313,63 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
                 self.gridChargingCurrentValue = 8
                 break;
             default:
-                self.lblGridCharing.text = "--"
+                let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                if dictSaved != nil
+                {
+                    let value = (dictSaved?.object(forKey: "ide") as? String)
+                    let name = (dictSaved?.object(forKey: "name") as? String)
+                    self.lblGridCharing.text = name
+                    self.gridChargingCurrentValue = Int(value!)!
+                }
+                else
+                {
+                    self.lblGridCharing.text = "2.5 A"
+                    self.gridChargingCurrentValue = 5
+                }
+                
                 break
         }
 
-        let gridStatus = self.dicrDetails.object(forKey: "setting_grid_charging") as? String
-
-        switch (gridStatus) {
-            case "0":
-               self.lblTemperature.text = "Disable"
-              break;
-            case "1":
-               self.lblTemperature.text = "Enable"
-                break;
-            case "2":
-                self.lblTemperature.text = "Disable"
-                break;
-            case "3":
-                self.lblTemperature.text = "Enable"
-                break;
-            default:
-                self.lblTemperature.text = "Disable"
-                break
+//        let gridStatus = self.dicrDetails.object(forKey: "setting_grid_charging") as? String
+//
+//        self.arrayGrid.add(dict)
+//
+//        switch (gridStatus) {
+//            case "0":
+//               self.lblTemperature.text = "Disable"
+//                UserDefaults.standard.set("false", forKey: "gd")
+//                UserDefaults.standard.synchronize()
+//              break;
+//            case "1":
+//               self.lblTemperature.text = "Enable"
+//                UserDefaults.standard.set("true", forKey: "gd")
+//                UserDefaults.standard.synchronize()
+//                break;
+//            case "2":
+//                self.lblTemperature.text = "Disable"
+//                UserDefaults.standard.set("false", forKey: "gd")
+//                UserDefaults.standard.synchronize()
+//                break;
+//            case "3":
+//                self.lblTemperature.text = "Enable"
+//                UserDefaults.standard.set("true", forKey: "gd")
+//                UserDefaults.standard.synchronize()
+//                break;
+//            default:
+//                self.lblTemperature.text = "Disable"
+//                UserDefaults.standard.set("false", forKey: "gd")
+//                UserDefaults.standard.synchronize()
+//                break
+//        }
+        let statusGrid = UserDefaults.standard.object(forKey: "gd") as? String
+        if statusGrid == "true"
+        {
+            self.lblTemperature.text = "Enable"
         }
-        
+        else
+        {
+            self.lblTemperature.text = "Disable"
+        }
         
         let voltageCut = self.dicrDetails.object(forKey: "setting_low_voltage_cut") as? String
 
@@ -461,7 +494,9 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
                 self.lblNewSolarResourcePriority.text =  name
                break;
              default:
-                self.lblNewSolarResourcePriority.text =  "-"
+            let dict = self.arrayNewResourcePriority[0] as? NSDictionary
+            let name = dict?.object(forKey: "name") as? String
+            self.lblNewSolarResourcePriority.text = name
                break;
            }
         
@@ -829,209 +864,7 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
         
     }
     
-    func setupDetails(obj : DeviceDetailsModel)  {
-        //self.lblWarrenty.text = String(obj.warranty_1) + " Months, " + String(obj.warranty_2) + " Days"
-        let onColor  = UIColor.green
-        let offColor = UIColor.red
-
-        if obj.setting_remote_priority == 0
-        {
-            self.switchContro.isOn = false
-            self.switchContro.tintColor = offColor
-            self.switchContro.backgroundColor = offColor
-            self.switchContro.layer.cornerRadius = self.switchContro.frame.height / 2.0
-            self.switchContro.clipsToBounds = true
-            self.getHideAllButtonFromViewRecursion(view: self.view)
-
-        }
-        else
-        {
-            self.switchContro.isOn = true
-            self.switchContro.onTintColor = onColor
-            self.switchContro.layer.cornerRadius = self.switchContro.frame.height / 2.0
-            self.switchContro.backgroundColor = onColor
-            self.switchContro.clipsToBounds = true
-            self.getShowAllButtonFromViewRecursion(view: self.view)
-            
-        }
-        
-        
-        self.lblWarrenty.text = obj.currency
-        self.txtFieldAmount.text = obj.electricity_unit_charge
-        
-   
-        let buzzer = obj.setting_buzzer
-        if buzzer == 3
-        {
-            self.lblBuzzer.text = "Buzzer Enable "
-        }
-        else  if buzzer == 2
-        {
-            self.lblBuzzer.text = "Buzzer Disabled"
-        }
-        else
-        {
-            self.lblBuzzer.text = "Buzzer Enable "
-        }
-        
-        switch (obj.setting_atc) {
-            case "2":
-                self.lblTemperature.text = "ATC Disable"
-              break;
-            case "3":
-               self.lblTemperature.text = "ATC Enable"
-                break;
-            default:
-                self.lblTemperature.text = "ATC Enable"
-                break
-        }
-        
-        switch (obj.setting_ups_type_is) {
-            case 2:
-               self.lblUPSType.text = "Narrow Window (185-265V)"
-              break;
-            case 3:
-               self.lblUPSType.text = "Wide Window (90-290V)"
-                break
-            case 1:
-               self.lblUPSType.text = "Wide Window (90-290V)"
-                break;
-            default:
-                self.lblUPSType.text = "Narrow Window (185-265V)"
-                break
-        }
-        
-        
-        switch (obj.setting_battery_type_is) {
-            case 5:
-               self.lblBatteryType.text = "Tubular"
-              break;
-            case 6:
-               self.lblBatteryType.text = "Sealed Maintenance Free"
-                break;
-            case 7:
-                self.lblBatteryType.text = "Lithium Ion"
-                break;
-            
-            case 1:
-               self.lblBatteryType.text = "Tubular"
-              break;
-            case 2:
-               self.lblBatteryType.text = "Sealed Maintenance Free"
-                break;
-            case 3:
-                self.lblBatteryType.text = "Lithium Ion"
-                break;
-            case 4:
-                self.lblBatteryType.text = "Lead Acid"
-                break;
-            default:
-                self.lblBatteryType.text = "Lead Acid"
-
-                break
-        }
-        
-        switch (obj.setting_grid_charging_is) {
-            case 5:
-               self.lblGridCharing.text = "2.5A"
-              break;
-            case 6:
-               self.lblGridCharing.text = "5A"
-                break;
-            case 7:
-                self.lblGridCharing.text = "10A"
-                break;
-            case 8:
-                self.lblGridCharing.text = "15A"
-                break;
-            case 1:
-                self.lblGridCharing.text = "2.5 A"
-                break;
-            case 2:
-                self.lblGridCharing.text = "5 A"
-                break;
-            case 3:
-                self.lblGridCharing.text = "10 A"
-                break;
-            case 4:
-                self.lblGridCharing.text = "15 A"
-                break;
-            default:
-                self.lblGridCharing.text = "--"
-                break
-        }
-        
-        switch (obj.setting_grid_charging) {
-            case 0:
-               self.lblTemperature.text = "Disable"
-              break;
-            case 1:
-               self.lblTemperature.text = "Enable"
-                break;
-            case 2:
-                self.lblTemperature.text = "Disable"
-                break;
-            case 3:
-                self.lblTemperature.text = "Enable"
-                break;
-            default:
-                self.lblTemperature.text = "Disable"
-                break
-        }
-        
-        
-        switch (obj.setting_low_voltage_cut_is) {
-            case 2:
-               self.lblLowVoltageCut.text = "11.0"
-              break;
-            case 3:
-               self.lblLowVoltageCut.text = "10.5"
-                break;
-            case 1:
-                self.lblLowVoltageCut.text = "10.5"
-            break;
-            case 4:
-                self.lblLowVoltageCut.text = "10.8"
-                break;
-            case 5:
-                self.lblLowVoltageCut.text = "11.2"
-                break;
-            case 6:
-                self.lblLowVoltageCut.text = "11.4"
-                break;
-            default:
-                self.lblLowVoltageCut.text = "11.0"
-                break
-        }
-        
-        switch (obj.setting_resource_priority) {
-             case 1:
-                self.lblResourcePreiority.text = "Enable grid when battery at 13 V"
-               break;
-             case 2:
-                self.lblResourcePreiority.text = "Enable grid when battery at 12.2 V"
-                 break;
-             case 3:
-                self.lblResourcePreiority.text = "Enable grid when battery at 11 V"
-               break;
-             case 4:
-                self.lblResourcePreiority.text = "-"
-               break;
-             case 5:
-                self.lblResourcePreiority.text = "Enable grid when battery at 13 V"
-               break;
-             case 6:
-                self.lblResourcePreiority.text =  "Enable grid when battery at 12.2 V"
-               break;
-             case 7:
-                self.lblResourcePreiority.text =  "Enable grid when battery at 11 V"
-               break;
-             default:
-                self.lblResourcePreiority.text =  "-"
-               break;
-           }
-       
-    }
+    func setupDetails(obj : DeviceDetailsModel)  {}
     
     @IBAction func tapBack(_ sender: Any) {
         self.navigationController?.popViewController(animated: true)
@@ -1047,11 +880,21 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
     
     @IBAction func tapswitchChnageValue(_ sender: UISwitch) {
         
+        var msg = String()
+        if sender.isOn == true
+        {
+            msg = "Are you sure, you want to switch On."
+        }
+        else
+        {
+            msg = "Are you sure, you want to switch Off."
+        }
+        
         
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.isFrom == "BLE"
         {
-            let alert = UIAlertController(title: webServices.AppName, message: "Are you sure, you want to switch On.", preferredStyle: UIAlertController.Style.alert)
+            let alert = UIAlertController(title: webServices.AppName, message: msg, preferredStyle: UIAlertController.Style.alert)
             alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action) in
                 if sender.isOn == false
                             {
@@ -1117,7 +960,7 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
                             }
             }))
             alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: { (action) in
-               
+                
             }))
             self.present(alert, animated: true, completion: nil)
         }
@@ -1402,7 +1245,7 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
              let dict = self.arrayGrid[row] as? NSDictionary
              self.lblGridCharing.text = (dict?.object(forKey: "name") as? String)!
              self.selectedId = (dict?.object(forKey: "ide") as? String)!
-             UserDefaults.standard.set(self.selectedId, forKey: "pValue")
+             UserDefaults.standard.set(dict, forKey: "pValue")
              UserDefaults.standard.synchronize()
              self.gridChargingCurrentValue = Int(self.selectedId)!
 
@@ -1422,15 +1265,13 @@ class SettingVC: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
               self.selectedId = (dict?.object(forKey: "ide") as? String)!
               if self.selectedId == "3"
               {
-                  var value = UserDefaults.standard.object(forKey: "pValue") as? String
+                  self.selectedId = (dict?.object(forKey: "ide") as? String)!
+                  let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                  let value = (dictSaved?.object(forKey: "ide") as? String)
                   UserDefaults.standard.set("true", forKey: "gd")
-                  
-                  if value == "" || value?.count == 0 || value == nil
-                  {
-                      value = "5"
-                  }
-                  
+                  UserDefaults.standard.synchronize()
                   self.selectedId = value!
+                  self.gridChargingCurrentValue = Int(self.selectedId)!
                   print(self.selectedId)
                   
               }else

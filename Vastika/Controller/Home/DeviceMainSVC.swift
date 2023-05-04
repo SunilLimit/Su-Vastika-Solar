@@ -36,6 +36,10 @@ class DeviceMainSVC: UIViewController {
     @IBOutlet weak var line6: UIView!
     @IBOutlet weak var line7: UIView!
     @IBOutlet weak var line8: UIView!
+    @IBOutlet weak var line9: UIView!
+    @IBOutlet weak var line99: UIView!
+    @IBOutlet weak var line10: UIView!
+    @IBOutlet weak var lin100: UIView!
     @IBOutlet weak var bottomView: UIView!
     @IBOutlet weak var lblHeading: UILabel!
     @IBOutlet weak var btnSetting: UIButton!
@@ -82,10 +86,12 @@ class DeviceMainSVC: UIViewController {
     @IBOutlet weak var imgSevenTop: UIImageView!
     @IBOutlet weak var imgSevenBotom: UIImageView!
     @IBOutlet weak var imgSevenBttomCont: NSLayoutConstraint!
+    @IBOutlet weak var lblSimpleBatery: UILabel!
     
     @IBOutlet weak var imgThreeTop: NSLayoutConstraint!
     @IBOutlet weak var imgThreeCheck: UIImageView!
     @IBOutlet weak var imgFiveCheckTop: UIImageView!
+    @IBOutlet weak var lblNewWalltageForGrid: UILabel!
     @IBOutlet weak var imgFIveTop: NSLayoutConstraint!
     
     @IBOutlet weak var imgSixLeading: NSLayoutConstraint!
@@ -93,6 +99,19 @@ class DeviceMainSVC: UIViewController {
     @IBOutlet weak var mainsGridVw: UIView!
     @IBOutlet weak var lblValueOfmainsGrid: UILabel!
     
+    @IBOutlet weak var imgEightTop: UIImageView!
+    @IBOutlet weak var lblGridNewWattage: UILabel!
+    @IBOutlet weak var imgEightTopConst: NSLayoutConstraint!
+    @IBOutlet weak var imgEightBottom: UIImageView!
+    @IBOutlet weak var imgEightBtmConst: NSLayoutConstraint!
+    
+    @IBOutlet weak var imgNine: UIImageView!
+    @IBOutlet weak var imgTen: UIImageView!
+    @IBOutlet weak var lblTItleGrid: UILabel!
+    
+    @IBOutlet weak var imgNineLeading: NSLayoutConstraint!
+    
+    @IBOutlet weak var imgTenTop: NSLayoutConstraint!
     
     var counter = 1
     var tabbedSwitch : Bool = false
@@ -128,7 +147,8 @@ class DeviceMainSVC: UIViewController {
     // l3 iinner view
     var innerViewL3 = UIView()
     var innerViewL4 = UIView()
-
+    @IBOutlet weak var vwOuterMp: UIView!
+    
     
     // MARK: - View Life Cycle
     override func viewDidLoad() {
@@ -138,7 +158,8 @@ class DeviceMainSVC: UIViewController {
         self.setUpView(viewT: self.voltageView, curve: 30)
         self.setUpView(viewT: self.frequencyView, curve: 30)
         self.setUpView(viewT: self.batteryTypeView, curve: 30)
-        
+        self.setUpView(viewT: self.vwOuterMp, curve: 20)
+
         self.setUpView(viewT: self.solarView, curve: 20)
         self.setUpView(viewT: self.gridView, curve: 20)
         self.setUpView(viewT: self.loadDDView, curve: 20)
@@ -150,11 +171,63 @@ class DeviceMainSVC: UIViewController {
         
         self.btnDiagnose.layer.cornerRadius = self.btnDiagnose.frame.size.height / 2
         self.btnDiagnose.clipsToBounds = true
-        ToastManager.shared.duration = 1.0
+        ToastManager.shared.duration = 1.5
         
-       
+        self.dicrDta = self.appDelegate.globalDict
         
+        let gdStatus = UserDefaults.standard.object(forKey: "gd") as? String
+        if gdStatus == "" || gdStatus == nil || gdStatus?.count == 0
+        {
+            let gridStatus = self.dicrDta.object(forKey: "setting_grid_charging") as? String
+            switch (gridStatus) {
+                case "0":
+                    UserDefaults.standard.set("false", forKey: "gd")
+                    UserDefaults.standard.synchronize()
+                  break;
+                case "1":
+                    UserDefaults.standard.set("true", forKey: "gd")
+                    UserDefaults.standard.synchronize()
+                    break;
+                case "2":
+                    UserDefaults.standard.set("false", forKey: "gd")
+                    UserDefaults.standard.synchronize()
+                    break;
+                case "3":
+                    UserDefaults.standard.set("true", forKey: "gd")
+                    UserDefaults.standard.synchronize()
+                    break;
+                default:
+                    UserDefaults.standard.set("false", forKey: "gd")
+                    UserDefaults.standard.synchronize()
+                    break
+            }
+        }
+      
+        
+        let dcBus = self.dicrDta.object(forKey: "dcbus") as? String
+        let gdvValue = UserDefaults.standard.object(forKey: "gdv") as? String
+        if gdvValue == "" || gdvValue == nil || gdvValue?.count == 0
+        {
+            if dcBus == "12"
+            {
+                UserDefaults.standard.set("13", forKey: "gdv")
+                UserDefaults.standard.synchronize()
+            }
+            else if dcBus == "24"
+            {
+                UserDefaults.standard.set("26", forKey: "gdv")
+                UserDefaults.standard.synchronize()
+            }
+            else
+            {
+                UserDefaults.standard.set("52", forKey: "gdv")
+                UserDefaults.standard.synchronize()
+            }
+           
+        }
         self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(updateCounterImage), userInfo: nil, repeats: true)
+        self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateCounter), userInfo: nil, repeats: true)
+
     }
     
     
@@ -176,7 +249,7 @@ class DeviceMainSVC: UIViewController {
         if (status_solar == "1" && status_mains == "1" && status_ups == "0" && Mains_Ok == "1") {
                 //Mains-solar mode
             
-                if (status_error == "10" && status_mains == "1") {
+                if (errorContains10 == true && status_mains == "1") {
                     let pvw = self.dicrDta.object(forKey: "pvw") as? String
                     let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                    
@@ -189,6 +262,18 @@ class DeviceMainSVC: UIViewController {
                         self.imgThreeCheck.isHidden = true
                         self.imgFourChck.isHidden = true
                         self.imgSevenBotom.isHidden = true
+                        self.imgFiveCheckTop.isHidden = false
+                        self.imgSixCheck.isHidden = false
+                        self.imgOneCheck.isHidden = false
+                        self.imgTwoCheck.isHidden = false
+                        self.imgSevenTop.isHidden = false
+                        self.imgEightTop.isHidden = true
+                        self.imgEightBottom.isHidden = true
+                        self.imgNine.isHidden = true
+                        self.imgTen.isHidden = true
+                        self.line99.isHidden = true
+                        self.lin100.isHidden = true
+                        self.line9.isHidden = true
                         
                         self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                         self.imgOneCheck.tintColor = UIColor.orange
@@ -262,7 +347,17 @@ class DeviceMainSVC: UIViewController {
                         self.imgFourChck.isHidden = true
                         self.imgSevenTop.isHidden = true
                         self.imgSevenBotom.isHidden = false
-                        
+                        self.imgFiveCheckTop.isHidden = false
+                        self.imgSixCheck.isHidden = false
+                        self.imgOneCheck.isHidden = false
+                        self.imgTwoCheck.isHidden = false
+                        self.imgEightTop.isHidden = true
+                        self.imgEightBottom.isHidden = false
+                        self.imgNine.isHidden = false
+                        self.imgTen.isHidden = false
+                        self.line99.isHidden = false
+                        self.lin100.isHidden = false
+                        self.line9.isHidden = false
                         self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                         self.imgOneCheck.tintColor = UIColor.orange
                         
@@ -278,7 +373,14 @@ class DeviceMainSVC: UIViewController {
                         self.imgSevenBotom.image = self.imgSevenBotom.image?.withRenderingMode(.alwaysTemplate)
                         self.imgSevenBotom.tintColor = UIColor.orange
                         
+                        self.imgEightBottom.image = self.imgEightBottom.image?.withRenderingMode(.alwaysTemplate)
+                        self.imgEightBottom.tintColor = UIColor.blue
                         
+                        self.imgNine.image = self.imgNine.image?.withRenderingMode(.alwaysTemplate)
+                        self.imgNine.tintColor = UIColor.blue
+                        
+                        self.imgTen.image = self.imgTen.image?.withRenderingMode(.alwaysTemplate)
+                        self.imgTen.tintColor = UIColor.blue
                         
                         if self.imgCheckConstant.constant > 50
                         {
@@ -324,12 +426,39 @@ class DeviceMainSVC: UIViewController {
                         {
                             self.imgSevenBttomCont.constant = self.imgSevenBttomCont.constant + 10
                         }
+                        
+                        if self.imgEightBtmConst.constant > 60
+                        {
+                            self.imgEightBtmConst.constant = 0
+                        }
+                        else
+                        {
+                            self.imgEightBtmConst.constant = self.imgEightBtmConst.constant + 10
+                        }
+                        
+                        if self.imgNineLeading.constant > 65
+                        {
+                            self.imgNineLeading.constant = 0
+                        }
+                        else
+                        {
+                            self.imgNineLeading.constant = self.imgNineLeading.constant + 10
+                        }
+                        
+                        if self.imgTenTop.constant > 70
+                        {
+                            self.imgTenTop.constant = 0
+                        }
+                        else
+                        {
+                            self.imgTenTop.constant = self.imgTenTop.constant + 10
+                        }
                       
                     }
                     
                     
                     
-                  } else if (status_error == "11" && status_mains == "1") {
+                  } else if (errorContains11 == true && status_mains == "1") {
                       let pvw = self.dicrDta.object(forKey: "pvw") as? String
                       let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                      
@@ -338,12 +467,22 @@ class DeviceMainSVC: UIViewController {
                       
                       if newPVW > newWattage
                       {
-                        // discharging
+                        // charging
                           
                           self.imgThreeCheck.isHidden = true
                           self.imgFourChck.isHidden = true
                           self.imgSevenTop.isHidden = false
                           self.imgSevenBotom.isHidden = true
+                          self.imgFiveCheckTop.isHidden = false
+                          self.imgSixCheck.isHidden = false
+                          self.imgOneCheck.isHidden = false
+                          self.imgTwoCheck.isHidden = false
+                          self.imgEightBottom.isHidden = true
+                          self.imgNine.isHidden = true
+                          self.imgTen.isHidden = true
+                          self.line99.isHidden = true
+                          self.lin100.isHidden = true
+                          self.line9.isHidden = true
                           
                           self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                           self.imgOneCheck.tintColor = UIColor.orange
@@ -417,7 +556,17 @@ class DeviceMainSVC: UIViewController {
                           self.imgFourChck.isHidden = true
                           self.imgSevenTop.isHidden = true
                           self.imgSevenBotom.isHidden = false
-                          
+                          self.imgFiveCheckTop.isHidden = false
+                          self.imgSixCheck.isHidden = false
+                          self.imgOneCheck.isHidden = false
+                          self.imgTwoCheck.isHidden = false
+                          self.imgSevenTop.isHidden = false
+                          self.imgEightBottom.isHidden = true
+                          self.imgNine.isHidden = false
+                          self.imgTen.isHidden = false
+                          self.line99.isHidden = false
+                          self.lin100.isHidden = false
+                          self.line9.isHidden = false
                           self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                           self.imgOneCheck.tintColor = UIColor.orange
                           
@@ -432,6 +581,12 @@ class DeviceMainSVC: UIViewController {
                           
                           self.imgSevenBotom.image = self.imgSevenBotom.image?.withRenderingMode(.alwaysTemplate)
                           self.imgSevenBotom.tintColor = UIColor.orange
+                          
+                          self.imgNine.image = self.imgNine.image?.withRenderingMode(.alwaysTemplate)
+                          self.imgNine.tintColor = UIColor.orange
+                          
+                          self.imgTen.image = self.imgTen.image?.withRenderingMode(.alwaysTemplate)
+                          self.imgTen.tintColor = UIColor.orange
                           
                           
                           
@@ -479,6 +634,24 @@ class DeviceMainSVC: UIViewController {
                           {
                               self.imgSevenBttomCont.constant = self.imgSevenBttomCont.constant + 10
                           }
+                          
+                          if self.imgNineLeading.constant > 65
+                          {
+                              self.imgNineLeading.constant = 0
+                          }
+                          else
+                          {
+                              self.imgNineLeading.constant = self.imgNineLeading.constant + 10
+                          }
+                          
+                          if self.imgTenTop.constant > 70
+                          {
+                              self.imgTenTop.constant = 0
+                          }
+                          else
+                          {
+                              self.imgTenTop.constant = self.imgTenTop.constant + 10
+                          }
                         
                       }
                   } else {
@@ -491,7 +664,38 @@ class DeviceMainSVC: UIViewController {
                       self.imgFourChck.isHidden = false
                       self.imgFiveCheckTop.isHidden = false
                       self.imgSixCheck.isHidden = false
+                      self.imgEightTop.isHidden = false
+                      self.imgEightBottom.isHidden = true
+                      self.imgNine.isHidden = true
+                      self.imgTen.isHidden = true
+                      self.line99.isHidden = true
+                      self.lin100.isHidden = true
+                      self.line9.isHidden = true
+                      
+                      let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+                      let gcdVV = UserDefaults.standard.object(forKey: "gdv") as? String
+                      let gcdFlo : Double = Double(gcdVV!)!
+                      let gcdvvFlo : Double = Double(bv!)!
+                      let battery_percent = self.dicrDta.object(forKey: "battery_percent") as? String
 
+                      
+                      if status_mains == "1" && gcd == "true"
+                      {
+                          if gcdvvFlo <= gcdFlo
+                          {
+                              self.imgEightTop.isHidden = false
+                          }
+                          else
+                          {
+                              self.imgEightTop.isHidden = true
+
+                          }
+                      }
+                      else
+                      {
+                          self.imgEightTop.isHidden = true
+                      }
+                      
                       self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                       self.imgOneCheck.tintColor = UIColor.orange
                       
@@ -499,19 +703,22 @@ class DeviceMainSVC: UIViewController {
                       self.imgTwoCheck.tintColor = UIColor.orange
                       
                       self.imgThreeCheck.image = self.imgThreeCheck.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgThreeCheck.tintColor = UIColor.green
+                      self.imgThreeCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       self.imgFourChck.image = self.imgFourChck.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgFourChck.tintColor = UIColor.green
+                      self.imgFourChck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgFiveCheckTop.tintColor = UIColor.green
+                      self.imgFiveCheckTop.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgSixCheck.tintColor = UIColor.green
+                      self.imgSixCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       self.imgSevenTop.image = self.imgSevenTop.image?.withRenderingMode(.alwaysTemplate)
                       self.imgSevenTop.tintColor = UIColor.orange
+                      
+                      self.imgEightTop.image = self.imgEightTop.image?.withRenderingMode(.alwaysTemplate)
+                      self.imgEightTop.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       
                       
@@ -578,6 +785,15 @@ class DeviceMainSVC: UIViewController {
                           self.imgFourConst.constant = self.imgFourConst.constant + 10
                       }
                       
+                      if self.imgEightTopConst.constant > 60
+                      {
+                          self.imgEightTopConst.constant = 0
+                      }
+                      else
+                      {
+                          self.imgEightTopConst.constant = self.imgEightTopConst.constant + 10
+                      }
+                      
                      
                     
                   }
@@ -602,6 +818,15 @@ class DeviceMainSVC: UIViewController {
                     self.imgSevenTop.isHidden = false
                     self.imgOneCheck.isHidden = false
                     self.imgTwoCheck.isHidden = false
+                    self.imgFiveCheckTop.isHidden = false
+                    self.imgSixCheck.isHidden = false
+                    self.imgEightTop.isHidden = true
+                    self.imgEightBottom.isHidden = true
+                    self.imgNine.isHidden = true
+                    self.imgTen.isHidden = true
+                    self.line99.isHidden = true
+                    self.lin100.isHidden = true
+                    self.line9.isHidden = true
                     
                     self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                     self.imgOneCheck.tintColor = UIColor.orange
@@ -618,7 +843,7 @@ class DeviceMainSVC: UIViewController {
                     self.imgSevenTop.image = self.imgSevenTop.image?.withRenderingMode(.alwaysTemplate)
                     self.imgSevenTop.tintColor = UIColor.orange
                     
-                    
+                   
                     
                     if self.imgCheckConstant.constant > 50
                     {
@@ -667,6 +892,7 @@ class DeviceMainSVC: UIViewController {
                     
                     
                     
+                    
                 }
                 else
                 {
@@ -675,9 +901,18 @@ class DeviceMainSVC: UIViewController {
                     self.imgSevenTop.isHidden = true
                     self.imgThreeCheck.isHidden = true
                     self.imgFourChck.isHidden = true
-                    self.imgSevenBotom.isHidden = false
+                    self.imgSevenBotom.isHidden = true
                     self.imgOneCheck.isHidden = false
                     self.imgTwoCheck.isHidden = false
+                    self.imgFiveCheckTop.isHidden = false
+                    self.imgSixCheck.isHidden = false
+                    self.imgEightTop.isHidden = true
+                    self.imgEightBottom.isHidden = false
+                    self.imgNine.isHidden = false
+                    self.imgTen.isHidden = false
+                    self.line99.isHidden = false
+                    self.lin100.isHidden = false
+                    self.line9.isHidden = false
                     
                     self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                     self.imgOneCheck.tintColor = UIColor.orange
@@ -693,6 +928,15 @@ class DeviceMainSVC: UIViewController {
                     
                     self.imgSevenBotom.image = self.imgSevenBotom.image?.withRenderingMode(.alwaysTemplate)
                     self.imgSevenBotom.tintColor = UIColor.orange
+                    
+                    self.imgEightBottom.image = self.imgEightBottom.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgEightBottom.tintColor = UIColor.blue
+                    
+                    self.imgNine.image = self.imgNine.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgNine.tintColor = UIColor.blue
+                    
+                    self.imgTen.image = self.imgTen.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgTen.tintColor = UIColor.blue
                     
                     
                     
@@ -741,14 +985,115 @@ class DeviceMainSVC: UIViewController {
                         self.imgSevenBttomCont.constant = self.imgSevenBttomCont.constant + 10
                     }
                     
+                    if self.imgEightBtmConst.constant > 60
+                    {
+                        self.imgEightBtmConst.constant = 0
+                    }
+                    else
+                    {
+                        self.imgEightBtmConst.constant = self.imgEightBtmConst.constant + 10
+                    }
                     
+                    if self.imgNineLeading.constant > 65
+                    {
+                        self.imgNineLeading.constant = 0
+                    }
+                    else
+                    {
+                        self.imgNineLeading.constant = self.imgNineLeading.constant + 10
+                    }
+                    
+                    if self.imgTenTop.constant > 70
+                    {
+                        self.imgTenTop.constant = 0
+                    }
+                    else
+                    {
+                        self.imgTenTop.constant = self.imgTenTop.constant + 10
+                    }
                 }
             }
             else if (status_solar == "1" && status_mains == "1" && status_ups == "1" && Mains_Ok == "1") {
                 // solar mode
                 self.lblHeading.text = "Solar Mode"
-
-                self.setUpUIForMainsMode()
+                self.imgSevenTop.isHidden = false
+                self.imgThreeCheck.isHidden = true
+                self.imgFourChck.isHidden = true
+                self.imgSevenBotom.isHidden = true
+                
+                self.imgOneCheck.isHidden = false
+                self.imgTwoCheck.isHidden = false
+                self.imgFiveCheckTop.isHidden = false
+                self.imgSixCheck.isHidden = false
+                self.imgEightTop.isHidden = true
+                self.imgEightBottom.isHidden = true
+                self.imgNine.isHidden = true
+                self.imgTen.isHidden = true
+                self.line99.isHidden = true
+                self.lin100.isHidden = true
+                self.line9.isHidden = true
+                
+                self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
+                self.imgOneCheck.tintColor = UIColor.orange
+                
+                self.imgTwoCheck.image = self.imgTwoCheck.image?.withRenderingMode(.alwaysTemplate)
+                self.imgTwoCheck.tintColor = UIColor.orange
+                
+                self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
+                self.imgFiveCheckTop.tintColor = UIColor.orange
+                
+                self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
+                self.imgSixCheck.tintColor = UIColor.orange
+                
+                self.imgSevenTop.image = self.imgSevenTop.image?.withRenderingMode(.alwaysTemplate)
+                self.imgSevenTop.tintColor = UIColor.orange
+                
+                
+                
+                if self.imgCheckConstant.constant > 50
+                {
+                    self.imgCheckConstant.constant = 0
+                }
+                else
+                {
+                    self.imgCheckConstant.constant = self.imgCheckConstant.constant + 10
+                }
+                
+                if self.imgTwoLeading.constant > 56
+                {
+                    self.imgTwoLeading.constant = 0
+                }
+                else
+                {
+                    self.imgTwoLeading.constant = self.imgTwoLeading.constant + 10
+                }
+                
+                if self.imgFIveTop.constant > 55
+                {
+                    self.imgFIveTop.constant = 0
+                }
+                else
+                {
+                    self.imgFIveTop.constant = self.imgFIveTop.constant + 10
+                }
+                
+                if self.imgSixLeading.constant > 39
+                {
+                    self.imgSixLeading.constant = 0
+                }
+                else
+                {
+                    self.imgSixLeading.constant = self.imgSixLeading.constant + 10
+                }
+                
+                if self.imgSevenTopConst.constant > 60
+                {
+                    self.imgSevenTopConst.constant = 0
+                }
+                else
+                {
+                    self.imgSevenTopConst.constant = self.imgSevenTopConst.constant + 10
+                }
             }
             else if (status_solar == "0" && status_mains == "1" && status_ups == "0" && Mains_Ok == "1") {
                 // Mains mode
@@ -764,152 +1109,36 @@ class DeviceMainSVC: UIViewController {
                 
                 if status_mains == "1" && gcd == "true"
                 {
-                    if gcdvvFlo <= gcdFlo
-                    {
-                        
-                        self.imgOneCheck.isHidden = true
-                        self.imgTwoCheck.isHidden = true
-                        self.imgSevenBotom.isHidden = true
-                        self.imgSevenTop.isHidden = true
-                        self.imgThreeCheck.isHidden = false
-                        self.imgFourChck.isHidden = false
-                       
-                        self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgFiveCheckTop.tintColor = UIColor.green
-                        
-                        self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgSixCheck.tintColor = UIColor.green
-                        
-                        self.imgThreeCheck.image = self.imgThreeCheck.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgThreeCheck.tintColor = UIColor.green
-                        
-                        self.imgFourChck.image = self.imgFourChck.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgFourChck.tintColor = UIColor.green
-                        
-                        
-                        
-                        if self.imgThreeTop.constant > 35
-                        {
-                            self.imgThreeTop.constant = 0
-                        }
-                        else
-                        {
-                            self.imgThreeTop.constant = self.imgThreeTop.constant + 10
-                        }
-                        
-                        if self.imgFourConst.constant > 39
-                        {
-                            self.imgFourConst.constant = 0
-                        }
-                        else
-                        {
-                            self.imgFourConst.constant = self.imgFourConst.constant + 10
-                        }
-                        
-                        if self.imgFIveTop.constant > 55
-                        {
-                            self.imgFIveTop.constant = 0
-                        }
-                        else
-                        {
-                            self.imgFIveTop.constant = self.imgFIveTop.constant + 10
-                        }
-                        
-                        if self.imgSixLeading.constant > 39
-                        {
-                            self.imgSixLeading.constant = 0
-                        }
-                        else
-                        {
-                            self.imgSixLeading.constant = self.imgSixLeading.constant + 10
-                        }
-                        
-                       
-                      
-                        
-                    }
-                    else
-                    {
-                        self.imgOneCheck.isHidden = true
-                        self.imgTwoCheck.isHidden = true
-                        self.imgSevenBotom.isHidden = true
-                        self.imgSevenTop.isHidden = true
-                        self.imgThreeCheck.isHidden = false
-                        self.imgFourChck.isHidden = false
-                       
-                        self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgFiveCheckTop.tintColor = UIColor.green
-                        
-                        self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgSixCheck.tintColor = UIColor.green
-                        
-                        self.imgThreeCheck.image = self.imgThreeCheck.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgThreeCheck.tintColor = UIColor.green
-                        
-                        self.imgFourChck.image = self.imgFourChck.image?.withRenderingMode(.alwaysTemplate)
-                        self.imgFourChck.tintColor = UIColor.green
-                        
-                        
-                        
-                        if self.imgThreeTop.constant > 35
-                        {
-                            self.imgThreeTop.constant = 0
-                        }
-                        else
-                        {
-                            self.imgThreeTop.constant = self.imgThreeTop.constant + 10
-                        }
-                        
-                        if self.imgFourConst.constant > 39
-                        {
-                            self.imgFourConst.constant = 0
-                        }
-                        else
-                        {
-                            self.imgFourConst.constant = self.imgFourConst.constant + 10
-                        }
-                        
-                        if self.imgFIveTop.constant > 55
-                        {
-                            self.imgFIveTop.constant = 0
-                        }
-                        else
-                        {
-                            self.imgFIveTop.constant = self.imgFIveTop.constant + 10
-                        }
-                        
-                        if self.imgSixLeading.constant > 39
-                        {
-                            self.imgSixLeading.constant = 0
-                        }
-                        else
-                        {
-                            self.imgSixLeading.constant = self.imgSixLeading.constant + 10
-                        }
-                        
-                    }
-                }
-                else
-                {
                     self.imgOneCheck.isHidden = true
                     self.imgTwoCheck.isHidden = true
                     self.imgSevenBotom.isHidden = true
                     self.imgSevenTop.isHidden = true
                     self.imgThreeCheck.isHidden = false
                     self.imgFourChck.isHidden = false
-                   
+                    self.imgFiveCheckTop.isHidden = false
+                    self.imgSixCheck.isHidden = false
+                    self.imgEightTop.isHidden = false
+                    self.imgEightBottom.isHidden = true
+                    self.imgNine.isHidden = true
+                    self.imgTen.isHidden = true
+                    self.line99.isHidden = true
+                    self.lin100.isHidden = true
+                    self.line9.isHidden = true
+                    
                     self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
-                    self.imgFiveCheckTop.tintColor = UIColor.green
+                    self.imgFiveCheckTop.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                     
                     self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
-                    self.imgSixCheck.tintColor = UIColor.green
+                    self.imgSixCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                     
                     self.imgThreeCheck.image = self.imgThreeCheck.image?.withRenderingMode(.alwaysTemplate)
-                    self.imgThreeCheck.tintColor = UIColor.green
+                    self.imgThreeCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                     
                     self.imgFourChck.image = self.imgFourChck.image?.withRenderingMode(.alwaysTemplate)
-                    self.imgFourChck.tintColor = UIColor.green
+                    self.imgFourChck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                     
+                    self.imgEightTop.image = self.imgEightTop.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgEightTop.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                     
                     
                     if self.imgThreeTop.constant > 35
@@ -948,6 +1177,95 @@ class DeviceMainSVC: UIViewController {
                         self.imgSixLeading.constant = self.imgSixLeading.constant + 10
                     }
                     
+                   
+                    if self.imgEightTopConst.constant > 60
+                    {
+                        self.imgEightTopConst.constant = 0
+                    }
+                    else
+                    {
+                        self.imgEightTopConst.constant = self.imgEightTopConst.constant + 10
+                    }
+                }
+                else
+                {
+                    self.imgOneCheck.isHidden = true
+                    self.imgTwoCheck.isHidden = true
+                    self.imgSevenBotom.isHidden = true
+                    self.imgSevenTop.isHidden = true
+                    self.imgThreeCheck.isHidden = false
+                    self.imgFourChck.isHidden = false
+                    self.imgFiveCheckTop.isHidden = false
+                    self.imgSixCheck.isHidden = false
+                    self.imgEightTop.isHidden = true
+                    self.imgEightBottom.isHidden = true
+                    self.imgNine.isHidden = true
+                    self.imgTen.isHidden = true
+                    self.line99.isHidden = true
+                    self.lin100.isHidden = true
+                    self.line9.isHidden = true
+                    
+                    self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgFiveCheckTop.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
+                    
+                    self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgSixCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
+                    
+                    self.imgThreeCheck.image = self.imgThreeCheck.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgThreeCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
+                    
+                    self.imgFourChck.image = self.imgFourChck.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgFourChck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
+                    
+                    self.imgEightTop.image = self.imgEightTop.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgEightTop.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
+                  
+                    
+                    if self.imgThreeTop.constant > 35
+                    {
+                        self.imgThreeTop.constant = 0
+                    }
+                    else
+                    {
+                        self.imgThreeTop.constant = self.imgThreeTop.constant + 10
+                    }
+                    
+                    if self.imgFourConst.constant > 39
+                    {
+                        self.imgFourConst.constant = 0
+                    }
+                    else
+                    {
+                        self.imgFourConst.constant = self.imgFourConst.constant + 10
+                    }
+                    
+                    if self.imgFIveTop.constant > 55
+                    {
+                        self.imgFIveTop.constant = 0
+                    }
+                    else
+                    {
+                        self.imgFIveTop.constant = self.imgFIveTop.constant + 10
+                    }
+                    
+                    if self.imgSixLeading.constant > 39
+                    {
+                        self.imgSixLeading.constant = 0
+                    }
+                    else
+                    {
+                        self.imgSixLeading.constant = self.imgSixLeading.constant + 10
+                    }
+                    
+                    if self.imgEightTopConst.constant > 60
+                    {
+                        self.imgEightTopConst.constant = 0
+                    }
+                    else
+                    {
+                        self.imgEightTopConst.constant = self.imgEightTopConst.constant + 10
+                    }
+                    
                 }
             }
             else if (status_solar == "1" && status_mains == "0" && status_ups == "1" && Mains_Ok == "0") {
@@ -967,6 +1285,15 @@ class DeviceMainSVC: UIViewController {
                     self.imgFourChck.isHidden = true
                     self.imgTwoCheck.isHidden = false
                     self.imgOneCheck.isHidden = false
+                    self.imgFiveCheckTop.isHidden = false
+                    self.imgSixCheck.isHidden = false
+                    self.imgEightTop.isHidden = true
+                    self.imgEightBottom.isHidden = true
+                    self.imgNine.isHidden = true
+                    self.imgTen.isHidden = true
+                    self.line99.isHidden = true
+                    self.lin100.isHidden = true
+                    self.line9.isHidden = true
                     
                     self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                     self.imgOneCheck.tintColor = UIColor.orange
@@ -1035,12 +1362,20 @@ class DeviceMainSVC: UIViewController {
                 {
                     
                
-                    self.imgSevenBotom.isHidden = false
+                    self.imgSevenBotom.isHidden = true
                     self.imgSevenTop.isHidden = true
                     self.imgThreeCheck.isHidden = true
                     self.imgFourChck.isHidden = true
                     self.imgTwoCheck.isHidden = false
                     self.imgOneCheck.isHidden = false
+                    self.imgFiveCheckTop.isHidden = false
+                    self.imgSixCheck.isHidden = false
+                    self.imgEightTop.isHidden = true
+                    self.imgEightBottom.isHidden = false
+                    self.imgNine.isHidden = false
+                    self.imgTen.isHidden = false
+                    self.line99.isHidden = false
+                    self.lin100.isHidden = false
                     
                     self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                     self.imgOneCheck.tintColor = UIColor.orange
@@ -1054,8 +1389,14 @@ class DeviceMainSVC: UIViewController {
                     self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
                     self.imgSixCheck.tintColor = UIColor.orange
                     
-                    self.imgSevenBotom.image = self.imgSevenBotom.image?.withRenderingMode(.alwaysTemplate)
-                    self.imgSevenBotom.tintColor = UIColor.orange
+                    self.imgEightBottom.image = self.imgEightBottom.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgEightBottom.tintColor = UIColor.blue
+                    
+                    self.imgNine.image = self.imgNine.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgNine.tintColor = UIColor.blue
+                    
+                    self.imgTen.image = self.imgTen.image?.withRenderingMode(.alwaysTemplate)
+                    self.imgTen.tintColor = UIColor.blue
                     
                     
                     
@@ -1095,13 +1436,31 @@ class DeviceMainSVC: UIViewController {
                         self.imgSixLeading.constant = self.imgSixLeading.constant + 10
                     }
                     
-                    if self.imgSevenBttomCont.constant > 60
+                    if self.imgEightBtmConst.constant > 60
                     {
-                        self.imgSevenBttomCont.constant = 0
+                        self.imgEightBtmConst.constant = 0
                     }
                     else
                     {
-                        self.imgSevenBttomCont.constant = self.imgSevenBttomCont.constant + 10
+                        self.imgEightBtmConst.constant = self.imgEightBtmConst.constant + 10
+                    }
+                    
+                    if self.imgNineLeading.constant > 65
+                    {
+                        self.imgNineLeading.constant = 0
+                    }
+                    else
+                    {
+                        self.imgNineLeading.constant = self.imgNineLeading.constant + 10
+                    }
+                    
+                    if self.imgTenTop.constant > 70
+                    {
+                        self.imgTenTop.constant = 0
+                    }
+                    else
+                    {
+                        self.imgTenTop.constant = self.imgTenTop.constant + 10
                     }
                     
                 }
@@ -1115,7 +1474,15 @@ class DeviceMainSVC: UIViewController {
                 self.imgFourChck.isHidden = true
                 self.imgFiveCheckTop.isHidden = true
                 self.imgSixCheck.isHidden = true
-
+                self.imgOneCheck.isHidden = false
+                self.imgTwoCheck.isHidden = false
+                self.imgEightTop.isHidden = true
+                self.imgEightBottom.isHidden = true
+                self.imgNine.isHidden = true
+                self.imgTen.isHidden = true
+                self.line99.isHidden = true
+                self.lin100.isHidden = true
+                self.line9.isHidden = true
                 
                 self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                 self.imgOneCheck.tintColor = UIColor.orange
@@ -1168,7 +1535,15 @@ class DeviceMainSVC: UIViewController {
                 self.imgFourChck.isHidden = true
                 self.imgOneCheck.isHidden = true
                 self.imgTwoCheck.isHidden = true
-
+                self.imgFiveCheckTop.isHidden = false
+                self.imgSixCheck.isHidden = false
+                self.imgEightTop.isHidden = true
+                self.imgEightBottom.isHidden = true
+                self.imgNine.isHidden = true
+                self.imgTen.isHidden = true
+                self.line99.isHidden = true
+                self.lin100.isHidden = true
+                self.line9.isHidden = true
                 
                 self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
                 self.imgFiveCheckTop.tintColor = UIColor.blue
@@ -1219,7 +1594,15 @@ class DeviceMainSVC: UIViewController {
                 self.imgFourChck.isHidden = true
                 self.imgOneCheck.isHidden = true
                 self.imgTwoCheck.isHidden = true
-
+                self.imgFiveCheckTop.isHidden = false
+                self.imgSixCheck.isHidden = false
+                self.imgEightTop.isHidden = true
+                self.imgEightBottom.isHidden = true
+                self.imgNine.isHidden = true
+                self.imgTen.isHidden = true
+                self.line99.isHidden = true
+                self.lin100.isHidden = true
+                self.line9.isHidden = true
                 
                 self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
                 self.imgFiveCheckTop.tintColor = UIColor.blue
@@ -1264,14 +1647,21 @@ class DeviceMainSVC: UIViewController {
             else if (status_solar == "0" && status_mains == "1" && status_ups == "1" && Mains_Ok == "0") || (status_solar == "0" && status_mains == "1" && status_ups == "0" && Mains_Ok == "0"){
                 if (errorContains10 == true && status_mains == "1") {
                     
-                 
+                    self.imgNine.isHidden = true
+                    self.imgTen.isHidden = true
+                    self.line99.isHidden = true
+                    self.lin100.isHidden = true
                     self.imgSevenBotom.isHidden = false
                     self.imgSevenTop.isHidden = true
                     self.imgThreeCheck.isHidden = true
                     self.imgFourChck.isHidden = true
                     self.imgOneCheck.isHidden = true
                     self.imgTwoCheck.isHidden = true
-
+                    self.imgFiveCheckTop.isHidden = false
+                    self.imgSixCheck.isHidden = false
+                    self.imgEightTop.isHidden = true
+                    self.imgEightBottom.isHidden = true
+                    self.line9.isHidden = true
                     
                     self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
                     self.imgFiveCheckTop.tintColor = UIColor.blue
@@ -1322,10 +1712,17 @@ class DeviceMainSVC: UIViewController {
                       self.imgFourChck.isHidden = true
                       self.imgOneCheck.isHidden = true
                       self.imgTwoCheck.isHidden = true
-
-                      
+                      self.imgFiveCheckTop.isHidden = false
+                      self.imgSixCheck.isHidden = false
+                      self.imgEightTop.isHidden = true
+                      self.imgEightBottom.isHidden = true
+                      self.imgNine.isHidden = true
+                      self.imgTen.isHidden = true
+                      self.line99.isHidden = true
+                      self.lin100.isHidden = true
                       self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
                       self.imgFiveCheckTop.tintColor = UIColor.blue
+                      self.line9.isHidden = true
                       
                       self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
                       self.imgSixCheck.tintColor = UIColor.blue
@@ -1372,9 +1769,10 @@ class DeviceMainSVC: UIViewController {
             else if (status_solar == "1" && status_mains == "1" && status_ups == "0" && Mains_Ok == "0")
             {
                 //Mains-solar mode
-            
-                if (status_error == "10" && status_mains == "1") {
-                    self.lblHeading.text = "UPS Solar Low Voltage"
+                let errorContains10 = status_error?.contains("10")
+                let errorContains11 = status_error?.contains("11")
+                
+                if (errorContains10 == true && status_mains == "1") {
                     let pvw = self.dicrDta.object(forKey: "pvw") as? String
                     let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                    
@@ -1388,9 +1786,19 @@ class DeviceMainSVC: UIViewController {
                         self.imgSevenTop.isHidden = false
                         self.imgThreeCheck.isHidden = true
                         self.imgFourChck.isHidden = true
-                      
+                        self.imgFiveCheckTop.isHidden = false
+                        self.imgSixCheck.isHidden = false
+                        self.imgOneCheck.isHidden = false
+                        self.imgTwoCheck.isHidden = false
+                        self.imgEightTop.isHidden = true
+                        self.imgEightBottom.isHidden = true
+                        self.imgNine.isHidden = true
+                        self.imgTen.isHidden = true
+                        self.line99.isHidden = true
+                        self.lin100.isHidden = true
                         self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                         self.imgOneCheck.tintColor = UIColor.orange
+                        self.line9.isHidden = true
                         
                         self.imgTwoCheck.image = self.imgTwoCheck.image?.withRenderingMode(.alwaysTemplate)
                         self.imgTwoCheck.tintColor = UIColor.orange
@@ -1458,7 +1866,18 @@ class DeviceMainSVC: UIViewController {
                         self.imgSevenTop.isHidden = true
                         self.imgThreeCheck.isHidden = true
                         self.imgFourChck.isHidden = true
-                      
+                        self.imgOneCheck.isHidden = false
+                        self.imgTwoCheck.isHidden = false
+                        self.imgFiveCheckTop.isHidden = false
+                        self.imgSixCheck.isHidden = false
+                        self.imgEightTop.isHidden = true
+                        self.imgEightBottom.isHidden = true
+                        self.imgNine.isHidden = true
+                        self.imgTen.isHidden = true
+                        self.line99.isHidden = true
+                        self.lin100.isHidden = true
+                        self.line9.isHidden = true
+                        
                         self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                         self.imgOneCheck.tintColor = UIColor.blue
                         
@@ -1528,7 +1947,7 @@ class DeviceMainSVC: UIViewController {
                     
                     
                     
-                  } else if (status_error == "11" && status_mains == "1") {
+                  } else if (errorContains11 == true && status_mains == "1") {
                       let pvw = self.dicrDta.object(forKey: "pvw") as? String
                       let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                      
@@ -1541,7 +1960,18 @@ class DeviceMainSVC: UIViewController {
                           self.imgSevenTop.isHidden = false
                           self.imgThreeCheck.isHidden = true
                           self.imgFourChck.isHidden = true
-                        
+                          self.imgFiveCheckTop.isHidden = false
+                          self.imgSixCheck.isHidden = false
+                          self.imgOneCheck.isHidden = false
+                          self.imgTwoCheck.isHidden = false
+                          self.imgEightTop.isHidden = true
+                          self.imgEightBottom.isHidden = true
+                          self.imgNine.isHidden = true
+                          self.imgTen.isHidden = true
+                          self.line99.isHidden = true
+                          self.lin100.isHidden = true
+                          self.line9.isHidden = true
+                          
                           self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                           self.imgOneCheck.tintColor = UIColor.orange
                           
@@ -1613,6 +2043,17 @@ class DeviceMainSVC: UIViewController {
                             self.imgSevenTop.isHidden = true
                             self.imgThreeCheck.isHidden = true
                             self.imgFourChck.isHidden = true
+                            self.imgOneCheck.isHidden = false
+                            self.imgTwoCheck.isHidden = false
+                            self.imgFiveCheckTop.isHidden = false
+                            self.imgSixCheck.isHidden = false
+                            self.imgEightTop.isHidden = true
+                          self.imgEightBottom.isHidden = true
+                          self.imgNine.isHidden = true
+                          self.imgTen.isHidden = true
+                          self.line99.isHidden = true
+                          self.lin100.isHidden = true
+                          self.line9.isHidden = true
                           
                             self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                             self.imgOneCheck.tintColor = UIColor.orange
@@ -1682,25 +2123,37 @@ class DeviceMainSVC: UIViewController {
                   } else {
                       
                       self.imgSevenBotom.isHidden = true
-                    
-                    
+                      self.imgSevenTop.isHidden = false
+                      self.imgThreeCheck.isHidden = false
+                      self.imgFourChck.isHidden = false
+                      self.imgOneCheck.isHidden = false
+                      self.imgTwoCheck.isHidden = false
+                      self.imgFiveCheckTop.isHidden = false
+                      self.imgSixCheck.isHidden = false
+                      self.imgEightTop.isHidden = true
+                      self.imgEightBottom.isHidden = true
+                      self.imgNine.isHidden = true
+                      self.imgTen.isHidden = true
+                      self.line99.isHidden = true
+                      self.lin100.isHidden = true
                       self.imgOneCheck.image = self.imgOneCheck.image?.withRenderingMode(.alwaysTemplate)
                       self.imgOneCheck.tintColor = UIColor.orange
+                      self.line9.isHidden = true
                       
                       self.imgTwoCheck.image = self.imgTwoCheck.image?.withRenderingMode(.alwaysTemplate)
                       self.imgTwoCheck.tintColor = UIColor.orange
                       
                       self.imgFiveCheckTop.image = self.imgFiveCheckTop.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgFiveCheckTop.tintColor = UIColor.green
+                      self.imgFiveCheckTop.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       self.imgSixCheck.image = self.imgSixCheck.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgSixCheck.tintColor = UIColor.green
+                      self.imgSixCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       self.imgThreeCheck.image = self.imgThreeCheck.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgThreeCheck.tintColor = UIColor.green
+                      self.imgThreeCheck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                       
                       self.imgFourChck.image = self.imgFourChck.image?.withRenderingMode(.alwaysTemplate)
-                      self.imgFourChck.tintColor = UIColor.green
+                      self.imgFourChck.tintColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
                      
                       self.imgSevenTop.image = self.imgSevenTop.image?.withRenderingMode(.alwaysTemplate)
                       self.imgSevenTop.tintColor = UIColor.orange
@@ -1813,7 +2266,8 @@ class DeviceMainSVC: UIViewController {
         //return
         self.setUpHeaderWarrentyDetails()
         self.setSerialNumber()
-        
+        self.gettingErrorCode()
+
         self.dicrDta = self.appDelegate.globalDict
       
         
@@ -1831,9 +2285,10 @@ class DeviceMainSVC: UIViewController {
         
         if (status_solar == "1" && status_mains == "1" && status_ups == "0" && Mains_Ok == "1") {
             //Mains-solar mode
-        
-            if (status_error == "10" && status_mains == "1") {
-                self.lblHeading.text = "UPS Solar Low Voltage"
+            let errorContains10 = status_error?.contains("10")
+            let errorContains11 = status_error?.contains("11")
+            
+            if (errorContains10 == true && status_mains == "1") {
                 let pvw = self.dicrDta.object(forKey: "pvw") as? String
                 let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                
@@ -1848,7 +2303,7 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line7)
                     self.removeAllSubLayesFormView(vwLines: self.linie1)
                     self.removeAllSubLayesFormView(vwLines: self.line2)
-                 
+                    
                     
                     self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                     self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
@@ -1859,6 +2314,9 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
+                    self.removeAllSubLayesFormView(vwLines: self.line9)
+                    self.removeAllSubLayesFormView(vwLines: self.line10)
+
                 }
                 else
                 {
@@ -1868,28 +2326,59 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line7)
                     self.removeAllSubLayesFormView(vwLines: self.linie1)
                     self.removeAllSubLayesFormView(vwLines: self.line2)
-                 
+                    self.removeAllSubLayesFormView(vwLines: self.line9)
+                    self.removeAllSubLayesFormView(vwLines: self.line10)
+                    self.line9.isHidden = false
+                    self.line9.isHidden = false
                     
                     self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                     self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
                     self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
                     self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                     self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
+                    self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.orange)
+                    self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.orange)
+
                   
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
                 }
                 
-                self.lblHeading.text = "UPS Solar Low Voltage"
-                self.previousMode = "UPS Solar Low Voltage"
+                let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                       
+                let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                
+                let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                        
+                let attributedString21 = NSMutableAttributedString(string:"Mains Low Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                        
+                attributedString11.append(attributedString21)
+                self.lblHeading.attributedText = attributedString11
+
+                
+                let mode = "UPS Mode Mains Low Voltage"
+                self.previousMode = mode
+                
                 self.firstView = GaugeLOWHIgh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                 self.firstView.backgroundColor = .white
                 self.innerFView.addSubview(self.firstView)
                 self.setUpUIForUpsSolarMode()
                 
-              } else if (status_error == "11" && status_mains == "1") {
-                  self.lblHeading.text = "UPS Solar High Voltage"
+              } else if (errorContains11 == true && status_mains == "1") {
+                  let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                         
+                  let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                  
+                  let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                          
+                  let attributedString21 = NSMutableAttributedString(string:"Mains High Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                          
+                  attributedString11.append(attributedString21)
+                  self.lblHeading.attributedText = attributedString11
+
+                  self.previousMode = "UPS Mode Mains High Voltage"
+                  
                   let pvw = self.dicrDta.object(forKey: "pvw") as? String
                   let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                  
@@ -1915,6 +2404,8 @@ class DeviceMainSVC: UIViewController {
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
+                      self.removeAllSubLayesFormView(vwLines: self.line9)
+                      self.removeAllSubLayesFormView(vwLines: self.line10)
                   }
                   else
                   {
@@ -1924,19 +2415,22 @@ class DeviceMainSVC: UIViewController {
                       self.removeAllSubLayesFormView(vwLines: self.line7)
                       self.removeAllSubLayesFormView(vwLines: self.linie1)
                       self.removeAllSubLayesFormView(vwLines: self.line2)
-                   
+                      self.line9.isHidden = false
+                      self.line9.isHidden = false
                       
                       self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                       self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
                       self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
                       self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                       self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
-                    
+                      self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.orange)
+                      self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.orange)
+
+                      
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
-                      self.lblHeading.text = "UPS Solar High Voltage"
-                      self.previousMode = "UPS Solar High Voltage"
+                     
                       self.secView = GaugeHigh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                       self.secView.backgroundColor = .white
                       self.innerFView.addSubview(self.secView)
@@ -1953,19 +2447,48 @@ class DeviceMainSVC: UIViewController {
                   self.removeAllSubLayesFormView(vwLines: self.line7)
                   self.removeAllSubLayesFormView(vwLines: self.line2)
                   self.removeAllSubLayesFormView(vwLines: self.linie1)
+                  self.removeAllSubLayesFormView(vwLines: self.line8)
+                  self.removeAllSubLayesFormView(vwLines: self.line9)
+                  self.removeAllSubLayesFormView(vwLines: self.line10)
+                  
+                  
+                  let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+                  let gcdVV = UserDefaults.standard.object(forKey: "gdv") as? String
+                  let gcdFlo : Double = Double(gcdVV!)!
+                  let gcdvvFlo : Double = Double(bv!)!
+                  let battery_percent = self.dicrDta.object(forKey: "battery_percent") as? String
+                  
+                  
+                  if status_mains == "1" && gcd == "true"
+                  {
+                      if gcdvvFlo <= gcdFlo
+                      {
+                          self.line8.isHidden = false
+                      }
+                      else
+                      {
+                          self.line8.isHidden = true
 
+                      }
+                  } else
+                  {
+                      self.line8.isHidden = true
+                  }
                   
-                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
                   
-                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
+                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  
+                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                   
                   self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                   self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
                   
                   self.makeVerticalAnimatedLine(line: self.line7, postion: "T", color: UIColor.orange)
-                  self.removeAllSubLayesFormView(vwLines: self.line8)
+                  self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+
+                  
                   
                   let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
                          
@@ -1985,6 +2508,22 @@ class DeviceMainSVC: UIViewController {
                   self.multiColorChart = GaugeVWP(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                   self.multiColorChart.backgroundColor = .white
                   self.newVoltageView.addSubview(self.multiColorChart)
+                  
+                  gaugeView = GaugeView(frame: CGRect(x: 0, y: 35, width: 160, height: 80))
+                  self.innerFView.addSubview(gaugeView)
+                  gaugeView
+                      .setupGuage(
+                          startDegree: 90,
+                          endDegree: 270,
+                          sectionGap: 10,
+                          minValue: 30,
+                          maxValue: 70
+                      )
+                      .setupContainer(options: [
+                          .showContainerBorder
+                      ])
+                      .setupUnitTitle(title: "")
+                      .buildGauge()
                   
                   
               }
@@ -2009,7 +2548,7 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
-             
+                
                 
                 self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
@@ -2020,39 +2559,73 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line8)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
+
             }
             else
             {
               // discharging
                 self.removeAllSubLayesFormView(vwLines: self.line5)
                 self.removeAllSubLayesFormView(vwLines: self.line6)
-                self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
-             
+                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
+                self.line9.isHidden = false
+                self.line10.isHidden = false
+                self.line8.isHidden = false
+                
                 
                 self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
-                self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
                 self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
-              
-                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.makeVerticalAnimatedLine(line: self.line8, postion: "B", color: UIColor.blue)
+                self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.blue)
+                self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.blue)
+                
+                self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
             }
 
             
             if (errorContains10 == true && Mains_Ok == "0") {
-                self.lblHeading.text = "UPS Solar Low Voltage"
-                self.previousMode = "UPS Solar Low Voltage"
+                let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                       
+                let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                
+                let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                        
+                let attributedString21 = NSMutableAttributedString(string:"Mains Low Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                        
+                attributedString11.append(attributedString21)
+                self.lblHeading.attributedText = attributedString11
+
+                
+                let mode = "UPS Mode Mains Low Voltage"
+                self.previousMode = mode
+                
                 self.firstView = GaugeLOWHIgh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                 self.firstView.backgroundColor = .white
                 self.innerFView.addSubview(self.firstView)
                 self.setUpUIForUpsSolarMode()
               } else if (errorContains11 == true && Mains_Ok == "0") {
-                  self.lblHeading.text = "UPS Solar High Voltage"
-                  self.previousMode = "UPS Solar High Voltage"
+                  let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                         
+                  let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                  
+                  let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                          
+                  let attributedString21 = NSMutableAttributedString(string:"Mains High Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                          
+                  attributedString11.append(attributedString21)
+                  self.lblHeading.attributedText = attributedString11
+
+                  self.previousMode = "UPS Mode Mains High Voltage"
+                  
                   self.secView = GaugeHigh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                   self.secView.backgroundColor = .white
                   self.innerFView.addSubview(self.secView)
@@ -2087,8 +2660,26 @@ class DeviceMainSVC: UIViewController {
             // solar mode
             self.lblHeading.text = "Solar Mode"
             self.previousMode = "Solar Mode"
-
-            self.setUpUIForMainsMode()
+            self.removeAllSubLayesFormView(vwLines: self.line5)
+            self.removeAllSubLayesFormView(vwLines: self.line6)
+            self.removeAllSubLayesFormView(vwLines: self.line7)
+            self.removeAllSubLayesFormView(vwLines: self.linie1)
+            self.removeAllSubLayesFormView(vwLines: self.line2)
+         
+            
+            self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
+            self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
+            self.makeVerticalAnimatedLine(line: self.line7, postion: "T", color: UIColor.orange)
+            self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
+            self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
+          
+            self.removeAllSubLayesFormView(vwLines: self.line8)
+            self.removeAllSubLayesFormView(vwLines: self.line4)
+            self.removeAllSubLayesFormView(vwLines: self.line3)
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
+            
+            self.setUpUIForSolarMode()
         }
         else if (status_solar == "0" && status_mains == "1" && status_ups == "0" && Mains_Ok == "1") {
             // Mains mode
@@ -2105,78 +2696,30 @@ class DeviceMainSVC: UIViewController {
             
             if status_mains == "1" && gcd == "true"
             {
-                if gcdvvFlo <= gcdFlo
-                {
-                    self.removeAllSubLayesFormView(vwLines: self.line3)
-                    self.removeAllSubLayesFormView(vwLines: self.line4)
-                    self.removeAllSubLayesFormView(vwLines: self.line5)
-                    self.removeAllSubLayesFormView(vwLines: self.line6)
-                    self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line3)
+                self.removeAllSubLayesFormView(vwLines: self.line4)
+                self.removeAllSubLayesFormView(vwLines: self.line5)
+                self.removeAllSubLayesFormView(vwLines: self.line6)
+                self.removeAllSubLayesFormView(vwLines: self.line8)
 
-                    self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.green)
+                self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                
+                self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                
+                self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
 
-                    self.removeAllSubLayesFormView(vwLines: self.linie1)
-                    self.removeAllSubLayesFormView(vwLines: self.line2)
-                    self.removeAllSubLayesFormView(vwLines: self.line7)
-                    
-                    
-                    // show lines
-                    self.lblBatteryVoltage.isHidden = false
-                    self.lblBatteryVoltage.text = bv! + " V"
-                    self.lblBatteryPercentage.isHidden = true
-                    if battery_percent == "100.00"
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbattery Green")
-                        self.lblBatteryPercentage.text = "mediumbattery Green"
-                    }
-                    else
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbatteryYellow")
-                        self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
-                    }
-                    
-                }
-                else
-                {
-                    self.lblBatteryVoltage.isHidden = false
-                    self.lblBatteryPercentage.isHidden = true
-                    self.lblBatteryVoltageHeight.constant = 21
-                    self.lblBatteryVoltage.text = bv! + " V"
-                    if battery_percent == "100.00"
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbattery Green")
-                        self.lblBatteryPercentage.text = "mediumbattery Green"
-                    }
-                    else
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbatteryYellow")
-                        self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
-                    }
-                    
-                    self.removeAllSubLayesFormView(vwLines: self.line3)
-                    self.removeAllSubLayesFormView(vwLines: self.line4)
-                    self.removeAllSubLayesFormView(vwLines: self.line5)
-                    self.removeAllSubLayesFormView(vwLines: self.line6)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
-                    
-                   // self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.green)
-
-                    self.removeAllSubLayesFormView(vwLines: self.linie1)
-                    self.removeAllSubLayesFormView(vwLines: self.line2)
-                    self.removeAllSubLayesFormView(vwLines: self.line7)
-                    self.removeAllSubLayesFormView(vwLines: self.line8)
-                }
+                self.removeAllSubLayesFormView(vwLines: self.linie1)
+                self.removeAllSubLayesFormView(vwLines: self.line2)
+                self.removeAllSubLayesFormView(vwLines: self.line7)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
+                
+                // show lines
+                self.lblBatteryVoltage.isHidden = false
+                self.lblBatteryVoltage.text = bv! + " V"
+                self.lblBatteryPercentage.isHidden = true
             }
             else
             {
@@ -2184,44 +2727,37 @@ class DeviceMainSVC: UIViewController {
                 self.lblBatteryPercentage.isHidden = true
                 self.lblBatteryVoltageHeight.constant = 21
                 self.lblBatteryVoltage.text = bv! + " V"
-                if battery_percent == "100.00"
-                {
-                    self.imgBattery.image = UIImage(named: "mediumbattery Green")
-                    self.lblBatteryPercentage.text = "mediumbattery Green"
-                }
-                else
-                {
-                    self.imgBattery.image = UIImage(named: "mediumbatteryYellow")
-                    self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
-                }
+                
                 
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line5)
                 self.removeAllSubLayesFormView(vwLines: self.line6)
+
+                self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                 
-                self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
+                self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                 
-                self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
-                
-               // self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.green)
+               // self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
 
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
                 self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
             }
             
             
            
-
+            self.multiColorChart = GaugeVWP(frame: CGRect(x: 0, y:20, width: 161, height: 129))
+            self.multiColorChart.backgroundColor = .white
+            self.newVoltageView.addSubview(self.multiColorChart)
             
             
-            self.secView = GaugeHigh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
-            self.secView.backgroundColor = .white
-            self.newVoltageView.addSubview(self.secView)
+           
             
             // To setup the gauge view
             gaugeView = GaugeView(frame: CGRect(x: 0, y: 35, width: 160, height: 80))
@@ -2273,8 +2809,10 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
+                self.line9.isHidden = true
+                self.line10.isHidden = true
+                self.line8.isHidden = true
 
-                
                 self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
                 
@@ -2286,21 +2824,36 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line8)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
-                
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
             }
             else
             {
+                self.line9.isHidden = false
+                self.line10.isHidden = false
+                self.line8.isHidden = false
+
+                self.removeAllSubLayesFormView(vwLines: self.line5)
+                self.removeAllSubLayesFormView(vwLines: self.line6)
+                self.removeAllSubLayesFormView(vwLines: self.linie1)
+                self.removeAllSubLayesFormView(vwLines: self.line2)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
+                
                 self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
                 
                 self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
                 
-                self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
-               
-                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.makeVerticalAnimatedLine(line: self.line8, postion: "B", color: UIColor.blue)
+                self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.blue)
+                self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.blue)
+
+                self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
+               
             }
             
             
@@ -2357,7 +2910,8 @@ class DeviceMainSVC: UIViewController {
             self.removeAllSubLayesFormView(vwLines: self.line4)
             self.removeAllSubLayesFormView(vwLines: self.line5)
             self.removeAllSubLayesFormView(vwLines: self.line6)
-
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
             // To setup the gauge view
             gaugeView = GaugeView(frame: CGRect(x: 0, y: 35, width: 160, height: 80))
             self.innerFView.addSubview(gaugeView)
@@ -2399,6 +2953,8 @@ class DeviceMainSVC: UIViewController {
             self.removeAllSubLayesFormView(vwLines: self.line3)
             self.removeAllSubLayesFormView(vwLines: self.line4)
             self.removeAllSubLayesFormView(vwLines: self.line8)
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
 
             
             // To setup the gauge view
@@ -2440,7 +2996,8 @@ class DeviceMainSVC: UIViewController {
             self.removeAllSubLayesFormView(vwLines: self.line3)
             self.removeAllSubLayesFormView(vwLines: self.line4)
             self.removeAllSubLayesFormView(vwLines: self.line8)
-
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
             
             // To setup the gauge view
             gaugeView = GaugeView(frame: CGRect(x: 0, y: 35, width: 160, height: 80))
@@ -2480,7 +3037,8 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line8)
-
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
                 
                 self.lblHeading.text = "UPS Low Voltage"
                 self.previousMode = "UPS Low Voltage"
@@ -2507,7 +3065,8 @@ class DeviceMainSVC: UIViewController {
                   self.removeAllSubLayesFormView(vwLines: self.line3)
                   self.removeAllSubLayesFormView(vwLines: self.line4)
                   self.removeAllSubLayesFormView(vwLines: self.line8)
-                  
+                  self.removeAllSubLayesFormView(vwLines: self.line9)
+                  self.removeAllSubLayesFormView(vwLines: self.line10)
                   self.previousMode = "UPS High Voltage"
                   self.lblHeading.text = "UPS High Voltage"
                   self.secView = GaugeHigh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
@@ -2528,9 +3087,10 @@ class DeviceMainSVC: UIViewController {
         else if (status_solar == "1" && status_mains == "1" && status_ups == "0" && Mains_Ok == "0")
         {
             //Mains-solar mode
-        
-            if (status_error == "10" && status_mains == "1") {
-                self.lblHeading.text = "UPS Solar Low Voltage"
+            let errorContains10 = status_error?.contains("10")
+            let errorContains11 = status_error?.contains("11")
+            
+            if (errorContains10 == true && status_mains == "1") {
                 let pvw = self.dicrDta.object(forKey: "pvw") as? String
                 let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                
@@ -2556,6 +3116,8 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
+                    self.removeAllSubLayesFormView(vwLines: self.line9)
+                    self.removeAllSubLayesFormView(vwLines: self.line10)
                 }
                 else
                 {
@@ -2576,20 +3138,47 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
+                    self.removeAllSubLayesFormView(vwLines: self.line9)
+                    self.removeAllSubLayesFormView(vwLines: self.line10)
                 }
                 
-                self.lblHeading.text = "UPS Solar Low Voltage"
-                self.previousMode = "UPS Solar Low Voltage"
+                let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                       
+                let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                
+                let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                        
+                let attributedString21 = NSMutableAttributedString(string:"Mains Low Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                        
+                attributedString11.append(attributedString21)
+                self.lblHeading.attributedText = attributedString11
+
+                
+                let mode = "UPS Mode Mains Low Voltage"
+                self.previousMode = mode
+                
                 self.firstView = GaugeLOWHIgh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                 self.firstView.backgroundColor = .white
                 self.innerFView.addSubview(self.firstView)
                 self.setUpUIForUpsSolarMode()
                 
-              } else if (status_error == "11" && status_mains == "1") {
-                  self.lblHeading.text = "UPS Solar High Voltage"
+              } else if (errorContains11 == true && status_mains == "1") {
                   let pvw = self.dicrDta.object(forKey: "pvw") as? String
                   let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                  
+                  let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                         
+                  let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                  
+                  let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                          
+                  let attributedString21 = NSMutableAttributedString(string:"Mains High Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                          
+                  attributedString11.append(attributedString21)
+                  self.lblHeading.attributedText = attributedString11
+
+                  self.previousMode = "UPS Mode Mains High Voltage"
+                  
                   let newPVW = CGFloat((pvw?.toDouble())!)
                   let newWattage = CGFloat((loadwa?.toDouble())!)
                   
@@ -2612,6 +3201,8 @@ class DeviceMainSVC: UIViewController {
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
+                      self.removeAllSubLayesFormView(vwLines: self.line9)
+                      self.removeAllSubLayesFormView(vwLines: self.line10)
                   }
                   else
                   {
@@ -2632,8 +3223,9 @@ class DeviceMainSVC: UIViewController {
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
-                      self.lblHeading.text = "UPS Solar High Voltage"
-                      self.previousMode = "UPS Solar High Voltage"
+                      self.removeAllSubLayesFormView(vwLines: self.line9)
+                      self.removeAllSubLayesFormView(vwLines: self.line10)
+                      
                       self.secView = GaugeHigh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                       self.secView.backgroundColor = .white
                       self.innerFView.addSubview(self.secView)
@@ -2652,17 +3244,19 @@ class DeviceMainSVC: UIViewController {
                   self.removeAllSubLayesFormView(vwLines: self.linie1)
 
                   
-                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
+                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                   
-                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
+                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                   
                   self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                   self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
                   
                   self.makeVerticalAnimatedLine(line: self.line7, postion: "T", color: UIColor.orange)
                   self.removeAllSubLayesFormView(vwLines: self.line8)
+                  self.removeAllSubLayesFormView(vwLines: self.line9)
+                  self.removeAllSubLayesFormView(vwLines: self.line10)
                   
                   let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
                          
@@ -2675,6 +3269,7 @@ class DeviceMainSVC: UIViewController {
                   attributedString11.append(attributedString21)
                   self.lblHeading.attributedText = attributedString11
 
+                  
                   
                   let mode = "Mains Mode Solar & Grid Charging"
                   self.previousMode = mode
@@ -2702,7 +3297,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -2741,7 +3336,10 @@ class DeviceMainSVC: UIViewController {
         
         self.timerforMode = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(setUPMode), userInfo: nil, repeats: true)
         
-        self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateCounter), userInfo: nil, repeats: true)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        self.timerforMode.invalidate()
     }
     
     func setSerialNumber()
@@ -2829,7 +3427,7 @@ class DeviceMainSVC: UIViewController {
     
     func updatedVoltageInpercentage()
     {
-        self.atcTimer = self.atcTimer + 2
+        
 
         let battery_percent = self.dicrDta.object(forKey: "battery_percent") as? String
         let bw = self.dicrDta.object(forKey: "bw") as? String
@@ -2922,7 +3520,7 @@ class DeviceMainSVC: UIViewController {
     {
         
         
-        
+        self.atcTimer = self.atcTimer + 2
         self.dicrDta = self.appDelegate.globalDict
       
         
@@ -2950,7 +3548,7 @@ class DeviceMainSVC: UIViewController {
         }
         else
         {
-            self.lblSolarNewWallage.text = pvw! + " W"
+            self.lblSolarNewWallage.text = pvw!.dropLast(3) + " W"
             self.lblSolarNewWallage.isHidden = false
         }
         
@@ -2969,10 +3567,20 @@ class DeviceMainSVC: UIViewController {
             //Mains-solar mode
             
             if (errorContains10 == true && status_mains == "1") {
-                    self.lblHeading.text = "UPS Solar Low Voltage"
                 let pvw = self.dicrDta.object(forKey: "pvw") as? String
                 let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                
+                let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                       
+                let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                
+                let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                        
+                let attributedString21 = NSMutableAttributedString(string:"Mains Low Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                        
+                attributedString11.append(attributedString21)
+                self.lblHeading.attributedText = attributedString11
+                
                 let newPVW = CGFloat((pvw?.toDouble())!)
                 let newWattage = CGFloat((loadwa?.toDouble())!)
                 
@@ -2995,6 +3603,8 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
+                    self.removeAllSubLayesFormView(vwLines: self.line9)
+                    self.removeAllSubLayesFormView(vwLines: self.line10)
                 }
                 else
                 {
@@ -3004,22 +3614,28 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line7)
                     self.removeAllSubLayesFormView(vwLines: self.linie1)
                     self.removeAllSubLayesFormView(vwLines: self.line2)
-                 
+                    self.line9.isHidden = false
+                    self.line10.isHidden = false
+                    self.line8.isHidden = false
+                    
                     
                     self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                     self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
                     self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
                     self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                     self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
-                  
+                    self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.blue)
+                    self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.blue)
+
+                    
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
                 }
                 
-                if self.previousMode != "UPS Solar Low Voltage"
+                if self.previousMode != "UPS Mode Mains Low Voltage"
                 {
-                    self.previousMode = "UPS Solar Low Voltage"
+                    self.previousMode = "UPS Mode Mains Low Voltage"
                     for view in self.innerFView.subviews {
                         view.removeFromSuperview()
                     }
@@ -3056,6 +3672,8 @@ class DeviceMainSVC: UIViewController {
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
+                      self.removeAllSubLayesFormView(vwLines: self.line9)
+                      self.removeAllSubLayesFormView(vwLines: self.line10)
                   }
                   else
                   {
@@ -3072,17 +3690,29 @@ class DeviceMainSVC: UIViewController {
                       self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
                       self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                       self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
-                    
+                      self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.orange)
+                      self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.orange)
+                      
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
                   }
                   
-                  self.lblHeading.text = "UPS Solar High Voltage"
+                  let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                         
+                  let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
                   
-                  if self.previousMode != "UPS Solar High Voltage"
+                  let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                          
+                  let attributedString21 = NSMutableAttributedString(string:"Mains High Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                          
+                  attributedString11.append(attributedString21)
+                  self.lblHeading.attributedText = attributedString11
+
+                  
+                  if self.previousMode != "UPS Mode Mains High Voltage"
                   {
-                      self.previousMode = "UPS Solar High Voltage"
+                      self.previousMode = "UPS Mode Mains High Voltage"
                       for view in self.newVoltageView.subviews {
                           view.removeFromSuperview()
                       }
@@ -3097,10 +3727,7 @@ class DeviceMainSVC: UIViewController {
                   self.setUpUIForUpsSolarMode()
               } else {
                   self.lblByPassValue.isHidden = true
-                  self.atcTimer = self.atcTimer + 2
                   self.lblBatteryPercentage.isHidden = false
-                  //self.removeAllSubLayesFormView()
-                  self.gettingErrorCode()
                   self.removeAllSubLayesFormView(vwLines: self.line3)
                   self.removeAllSubLayesFormView(vwLines: self.line4)
                   self.removeAllSubLayesFormView(vwLines: self.line5)
@@ -3108,21 +3735,46 @@ class DeviceMainSVC: UIViewController {
                   self.removeAllSubLayesFormView(vwLines: self.line7)
                   self.removeAllSubLayesFormView(vwLines: self.line2)
                   self.removeAllSubLayesFormView(vwLines: self.linie1)
+                  self.removeAllSubLayesFormView(vwLines: self.line8)
+
+                  let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+                  let gcdVV = UserDefaults.standard.object(forKey: "gdv") as? String
+                  let gcdFlo : Double = Double(gcdVV!)!
+                  let gcdvvFlo : Double = Double(bv!)!
+                  let battery_percent = self.dicrDta.object(forKey: "battery_percent") as? String
+
                   
+                  if status_mains == "1" && gcd == "true"
+                  {
+                      if gcdvvFlo <= gcdFlo
+                      {
+                          self.line8.isHidden = false
+                      }
+                      else
+                      {
+                          self.line8.isHidden = true
+
+                      }
+                  }
+                  else
+                  {
+                      self.line8.isHidden = true
+                  }
                   
-                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
+                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                   
-                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
+                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                   
                   self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                   self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
                   
                   self.makeVerticalAnimatedLine(line: self.line7, postion: "T", color: UIColor.orange)
-                  
-                  self.removeAllSubLayesFormView(vwLines: self.line8)
+                  self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
 
+                  self.removeAllSubLayesFormView(vwLines: self.line9)
+                  self.removeAllSubLayesFormView(vwLines: self.line10)
 
                   let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
                          
@@ -3146,11 +3798,29 @@ class DeviceMainSVC: UIViewController {
                       for view in self.newVoltageView.subviews {
                           view.removeFromSuperview()
                       }
+                      for view in self.innerFView.subviews {
+                          view.removeFromSuperview()
+                      }
                       // To setup the gauge view
                       self.multiColorChart = GaugeVWP(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                       self.multiColorChart.backgroundColor = .white
                       self.newVoltageView.addSubview(self.multiColorChart)
                       
+                      gaugeView = GaugeView(frame: CGRect(x: 0, y: 35, width: 160, height: 80))
+                      self.innerFView.addSubview(gaugeView)
+                      gaugeView
+                          .setupGuage(
+                              startDegree: 90,
+                              endDegree: 270,
+                              sectionGap: 10,
+                              minValue: 30,
+                              maxValue: 70
+                          )
+                          .setupContainer(options: [
+                              .showContainerBorder
+                          ])
+                          .setupUnitTitle(title: "")
+                          .buildGauge()
                   }
                   
                   self.setUpUIForMainsSolarMode()
@@ -3160,7 +3830,6 @@ class DeviceMainSVC: UIViewController {
         }
         else if (status_solar == "1" && status_mains == "1" && status_ups == "1" && Mains_Ok == "0") {
             
-            self.gettingErrorCode()
             let pvw = self.dicrDta.object(forKey: "pvw") as? String
             let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
            
@@ -3186,24 +3855,32 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line8)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
             }
             else
             {
               // discharging
                 self.removeAllSubLayesFormView(vwLines: self.line5)
                 self.removeAllSubLayesFormView(vwLines: self.line6)
-                self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
-             
+                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
+                self.line9.isHidden = false
+                self.line10.isHidden = false
+                self.line8.isHidden = false
                 
                 self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
-                self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
                 self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
-              
-                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.makeVerticalAnimatedLine(line: self.line8, postion: "B", color: UIColor.blue)
+                self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.blue)
+                self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.blue)
+
+                self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
             }
@@ -3211,10 +3888,21 @@ class DeviceMainSVC: UIViewController {
             
             
             if (errorContains10 == true && Mains_Ok == "0") {
-                self.lblHeading.text = "UPS Solar Low Voltage"
-                if self.previousMode != "UPS Solar Low Voltage"
+                let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                       
+                let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                
+                let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                        
+                let attributedString21 = NSMutableAttributedString(string:"Mains Low Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                        
+                attributedString11.append(attributedString21)
+                self.lblHeading.attributedText = attributedString11
+
+
+                if self.previousMode != "UPS Mode Mains Low Voltage"
                 {
-                    self.previousMode = "UPS Solar Low Voltage"
+                    self.previousMode = "UPS Mode Mains Low Voltage"
                     for view in self.innerFView.subviews {
                         view.removeFromSuperview()
                     }
@@ -3226,10 +3914,21 @@ class DeviceMainSVC: UIViewController {
                 self.setUpUIForUpsSolarMode()
                 
               } else if (errorContains11 == true && Mains_Ok == "0") {
-                  self.lblHeading.text = "UPS Solar High Voltage"
-                  if self.previousMode != "UPS Solar High Voltage"
+                  let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                         
+                  let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                  
+                  let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                          
+                  let attributedString21 = NSMutableAttributedString(string:"Mains High Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                          
+                  attributedString11.append(attributedString21)
+                  self.lblHeading.attributedText = attributedString11
+
+
+                  if self.previousMode != "UPS Mode Mains High Voltage"
                   {
-                      self.previousMode = "UPS Solar High Voltage"
+                      self.previousMode = "UPS Mode Mains High Voltage"
                       for view in self.newVoltageView.subviews {
                           view.removeFromSuperview()
                       }
@@ -3277,13 +3976,31 @@ class DeviceMainSVC: UIViewController {
         else if (status_solar == "1" && status_mains == "1" && status_ups == "1" && Mains_Ok == "1") {
             // solar mode
             self.lblHeading.text = "Solar Mode"
-            return
-            self.setUpUIForMainsMode()
+            self.previousMode = "Solar Mode"
+            self.removeAllSubLayesFormView(vwLines: self.line5)
+            self.removeAllSubLayesFormView(vwLines: self.line6)
+            self.removeAllSubLayesFormView(vwLines: self.line7)
+            self.removeAllSubLayesFormView(vwLines: self.linie1)
+            self.removeAllSubLayesFormView(vwLines: self.line2)
+         
+            
+            self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
+            self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
+            self.makeVerticalAnimatedLine(line: self.line7, postion: "T", color: UIColor.orange)
+            self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
+            self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
+          
+            self.removeAllSubLayesFormView(vwLines: self.line8)
+            self.removeAllSubLayesFormView(vwLines: self.line4)
+            self.removeAllSubLayesFormView(vwLines: self.line3)
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
+            
+            self.setUpUIForSolarMode()
         }
         else if (status_solar == "0" && status_mains == "1" && status_ups == "0" && Mains_Ok == "1") {
             // Mains mode
             self.lblHeading.text = "Mains Mode"
-            self.gettingErrorCode()
             let gcd = UserDefaults.standard.object(forKey: "gd") as? String
             let gcdVV = UserDefaults.standard.object(forKey: "gdv") as? String
             let gcdFlo : Double = Double(gcdVV!)!
@@ -3293,78 +4010,30 @@ class DeviceMainSVC: UIViewController {
             
             if status_mains == "1" && gcd == "true"
             {
-                if gcdvvFlo <= gcdFlo
-                {
-                    self.removeAllSubLayesFormView(vwLines: self.line3)
-                    self.removeAllSubLayesFormView(vwLines: self.line4)
-                    self.removeAllSubLayesFormView(vwLines: self.line5)
-                    self.removeAllSubLayesFormView(vwLines: self.line6)
-                    self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line3)
+                self.removeAllSubLayesFormView(vwLines: self.line4)
+                self.removeAllSubLayesFormView(vwLines: self.line5)
+                self.removeAllSubLayesFormView(vwLines: self.line6)
+                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.line8.isHidden = false
+                self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                
+                self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                
+                self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
 
-                    self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.green)
-
-                    self.removeAllSubLayesFormView(vwLines: self.linie1)
-                    self.removeAllSubLayesFormView(vwLines: self.line2)
-                    self.removeAllSubLayesFormView(vwLines: self.line7)
-                    
-                    
-                    // show lines
-                    self.lblBatteryVoltage.isHidden = false
-                    self.lblBatteryVoltage.text = bv! + " V"
-                    self.lblBatteryPercentage.isHidden = true
-                    if battery_percent == "100.00"
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbattery Green")
-                        self.lblBatteryPercentage.text = "mediumbattery Green"
-                    }
-                    else
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbatteryYellow")
-                        self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
-                    }
-                    
-                }
-                else
-                {
-                    self.lblBatteryVoltage.isHidden = false
-                    self.lblBatteryPercentage.isHidden = true
-                    self.lblBatteryVoltageHeight.constant = 21
-                    self.lblBatteryVoltage.text = bv! + " V"
-                    if battery_percent == "100.00"
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbattery Green")
-                        self.lblBatteryPercentage.text = "mediumbattery Green"
-                    }
-                    else
-                    {
-                        self.imgBattery.image = UIImage(named: "mediumbatteryYellow")
-                        self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
-                    }
-                    
-                    self.removeAllSubLayesFormView(vwLines: self.line3)
-                    self.removeAllSubLayesFormView(vwLines: self.line4)
-                    self.removeAllSubLayesFormView(vwLines: self.line5)
-                    self.removeAllSubLayesFormView(vwLines: self.line6)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
-                    
-                    self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                    self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
-                    
-                   // self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.green)
-
-                    self.removeAllSubLayesFormView(vwLines: self.linie1)
-                    self.removeAllSubLayesFormView(vwLines: self.line2)
-                    self.removeAllSubLayesFormView(vwLines: self.line7)
-                    self.removeAllSubLayesFormView(vwLines: self.line8)
-                }
+                self.removeAllSubLayesFormView(vwLines: self.linie1)
+                self.removeAllSubLayesFormView(vwLines: self.line2)
+                self.removeAllSubLayesFormView(vwLines: self.line7)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
+                
+                // show lines
+                self.lblBatteryVoltage.isHidden = false
+                self.lblBatteryVoltage.text = bv! + " V"
+                self.lblBatteryPercentage.isHidden = true
             }
             else
             {
@@ -3372,34 +4041,29 @@ class DeviceMainSVC: UIViewController {
                 self.lblBatteryPercentage.isHidden = true
                 self.lblBatteryVoltageHeight.constant = 21
                 self.lblBatteryVoltage.text = bv! + " V"
-                if battery_percent == "100.00"
-                {
-                    self.imgBattery.image = UIImage(named: "mediumbattery Green")
-                    self.lblBatteryPercentage.text = "mediumbattery Green"
-                }
-                else
-                {
-                    self.imgBattery.image = UIImage(named: "mediumbatteryYellow")
-                    self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
-                }
+                
                 
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line5)
                 self.removeAllSubLayesFormView(vwLines: self.line6)
+                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.line8.isHidden = true
                 
-                self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
+                self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                 
-                self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
+                self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                 
-               // self.makeVerticalAnimatedLine(line: self.line8, postion: "T", color: UIColor.green)
+               
 
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
                 self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
             }
             
             
@@ -3414,9 +4078,9 @@ class DeviceMainSVC: UIViewController {
                     view.removeFromSuperview()
                 }
                 
-                self.secView = GaugeHigh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
-                self.secView.backgroundColor = .white
-                self.newVoltageView.addSubview(self.secView)
+                self.multiColorChart = GaugeVWP(frame: CGRect(x: 0, y:20, width: 161, height: 129))
+                self.multiColorChart.backgroundColor = .white
+                self.newVoltageView.addSubview(self.multiColorChart)
                 // To setup the gauge view
                 gaugeView = GaugeView(frame: CGRect(x: 0, y: 35, width: 160, height: 80))
                 self.innerFView.addSubview(gaugeView)
@@ -3438,7 +4102,6 @@ class DeviceMainSVC: UIViewController {
         }
         else if (status_solar == "1" && status_mains == "0" && status_ups == "1" && Mains_Ok == "0") {
             
-            self.gettingErrorCode()
             
             let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
                    
@@ -3461,14 +4124,16 @@ class DeviceMainSVC: UIViewController {
                 
             if newPVW > newWattage
             {
-                
+                // charging
                 self.removeAllSubLayesFormView(vwLines: self.line5)
                 self.removeAllSubLayesFormView(vwLines: self.line6)
                 self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
-                
-                
+                self.line9.isHidden = true
+                self.line10.isHidden = true
+                self.line8.isHidden = true
+
                 self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
                 
@@ -3480,29 +4145,38 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line8)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
-
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
             }
             else
             {
      
+                // discharging
                 self.removeAllSubLayesFormView(vwLines: self.line5)
                 self.removeAllSubLayesFormView(vwLines: self.line6)
-                self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.linie1)
                 self.removeAllSubLayesFormView(vwLines: self.line2)
-                
+                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
+                self.line9.isHidden = false
+                self.line10.isHidden = false
+                self.line8.isHidden = false
                 
                 self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.orange)
                 
                 self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                 self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
+                self.makeVerticalAnimatedLine(line: self.line8, postion: "B", color: UIColor.blue)
+                self.makeHorizotalAnimatedLine(line: self.line9, postion: "L", color: UIColor.blue)
+                self.makeVerticalAnimatedLine(line: self.line10, postion: "T", color: UIColor.blue)
+
                 
-                self.makeVerticalAnimatedLine(line: self.line7, postion: "B", color: UIColor.orange)
-                self.removeAllSubLayesFormView(vwLines: self.line8)
+                self.removeAllSubLayesFormView(vwLines: self.line7)
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
-             
+                
 
             }
             
@@ -3540,7 +4214,6 @@ class DeviceMainSVC: UIViewController {
         }
         else if (status_solar == "1" && status_mains == "0" && status_ups == "0" && Mains_Ok == "0") {
             
-            self.gettingErrorCode()
             
             let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
                    
@@ -3570,7 +4243,8 @@ class DeviceMainSVC: UIViewController {
             self.removeAllSubLayesFormView(vwLines: self.line4)
             self.removeAllSubLayesFormView(vwLines: self.line5)
             self.removeAllSubLayesFormView(vwLines: self.line6)
-
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
             
             if self.previousMode != "UPS Mode Solar & Battery"
             {
@@ -3600,7 +4274,6 @@ class DeviceMainSVC: UIViewController {
         else if (status_solar == "0" && status_mains == "0" && status_ups == "1" && Mains_Ok == "0") {
             self.lblHeading.text = "UPS Mode"
 
-            self.gettingErrorCode()
             
             self.removeAllSubLayesFormView(vwLines: self.line5)
             self.removeAllSubLayesFormView(vwLines: self.line6)
@@ -3615,7 +4288,8 @@ class DeviceMainSVC: UIViewController {
             self.removeAllSubLayesFormView(vwLines: self.line3)
             self.removeAllSubLayesFormView(vwLines: self.line4)
             self.removeAllSubLayesFormView(vwLines: self.line8)
-            
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
             // To setup the gauge view
             
             if self.previousMode != "UPS Mode"
@@ -3649,7 +4323,6 @@ class DeviceMainSVC: UIViewController {
         }
         else if (status_solar == "0" && status_mains == "0" && status_ups == "0" && Mains_Ok == "0") {
             self.lblHeading.text = "UPS Mode"
-            self.gettingErrorCode()
             // To setup the gauge view
            
             
@@ -3668,7 +4341,8 @@ class DeviceMainSVC: UIViewController {
             self.removeAllSubLayesFormView(vwLines: self.line3)
             self.removeAllSubLayesFormView(vwLines: self.line4)
             self.removeAllSubLayesFormView(vwLines: self.line8)
-
+            self.removeAllSubLayesFormView(vwLines: self.line9)
+            self.removeAllSubLayesFormView(vwLines: self.line10)
             
             if self.previousMode != "UPS Mode"
             {
@@ -3699,7 +4373,6 @@ class DeviceMainSVC: UIViewController {
 
         }
         else if (status_solar == "0" && status_mains == "1" && status_ups == "1" && Mains_Ok == "0") || (status_solar == "0" && status_mains == "1" && status_ups == "0" && Mains_Ok == "0"){
-            self.gettingErrorCode()
             
             
             if (errorContains10 == true && status_mains == "1") {
@@ -3719,7 +4392,8 @@ class DeviceMainSVC: UIViewController {
                 self.removeAllSubLayesFormView(vwLines: self.line3)
                 self.removeAllSubLayesFormView(vwLines: self.line4)
                 self.removeAllSubLayesFormView(vwLines: self.line8)
-
+                self.removeAllSubLayesFormView(vwLines: self.line9)
+                self.removeAllSubLayesFormView(vwLines: self.line10)
                 
                 self.lblHeading.text = "UPS Low Voltage"
                 if self.previousMode != "UPS Low Voltage"
@@ -3732,9 +4406,10 @@ class DeviceMainSVC: UIViewController {
                     self.firstView = GaugeLOWHIgh(frame: CGRect(x: 0, y:20, width: 161, height: 129))
                     self.firstView.backgroundColor = .white
                     self.innerFView.addSubview(self.firstView)
-                    self.setUpUIForUpsLowVoltageMode()
+                   
 
                 }
+                self.setUpUIForUpsLowVoltageMode()
                 
               } else if (errorContains11 == true && status_mains == "1") {
                  // self.removeAllSubLayesFormView()
@@ -3755,6 +4430,8 @@ class DeviceMainSVC: UIViewController {
                   self.removeAllSubLayesFormView(vwLines: self.line4)
                   self.removeAllSubLayesFormView(vwLines: self.line8)
 
+                  self.removeAllSubLayesFormView(vwLines: self.line9)
+                  self.removeAllSubLayesFormView(vwLines: self.line10)
                   
                   self.lblHeading.text = "UPS High Voltage"
                   if self.previousMode != "UPS High Voltage"
@@ -3777,7 +4454,18 @@ class DeviceMainSVC: UIViewController {
             //Mains-solar mode
             
             if (errorContains10 == true && status_mains == "1") {
-                    self.lblHeading.text = "UPS Solar Low Voltage"
+                let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                       
+                let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
+                
+                let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                        
+                let attributedString21 = NSMutableAttributedString(string:"Mains Low Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                        
+                attributedString11.append(attributedString21)
+                self.lblHeading.attributedText = attributedString11
+
+                
                 let pvw = self.dicrDta.object(forKey: "pvw") as? String
                 let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
                
@@ -3803,6 +4491,8 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
+                    self.removeAllSubLayesFormView(vwLines: self.line9)
+                    self.removeAllSubLayesFormView(vwLines: self.line10)
                 }
                 else
                 {
@@ -3823,11 +4513,13 @@ class DeviceMainSVC: UIViewController {
                     self.removeAllSubLayesFormView(vwLines: self.line8)
                     self.removeAllSubLayesFormView(vwLines: self.line4)
                     self.removeAllSubLayesFormView(vwLines: self.line3)
+                    self.removeAllSubLayesFormView(vwLines: self.line9)
+                    self.removeAllSubLayesFormView(vwLines: self.line10)
                 }
                 
-                if self.previousMode != "UPS Solar Low Voltage"
+                if self.previousMode != "UPS Mode Mains Low Voltage"
                 {
-                    self.previousMode = "UPS Solar Low Voltage"
+                    self.previousMode = "UPS Mode Mains Low Voltage"
                     for view in self.innerFView.subviews {
                         view.removeFromSuperview()
                     }
@@ -3864,6 +4556,8 @@ class DeviceMainSVC: UIViewController {
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
+                      self.removeAllSubLayesFormView(vwLines: self.line9)
+                      self.removeAllSubLayesFormView(vwLines: self.line10)
                   }
                   else
                   {
@@ -3884,13 +4578,24 @@ class DeviceMainSVC: UIViewController {
                       self.removeAllSubLayesFormView(vwLines: self.line8)
                       self.removeAllSubLayesFormView(vwLines: self.line4)
                       self.removeAllSubLayesFormView(vwLines: self.line3)
+                      self.removeAllSubLayesFormView(vwLines: self.line9)
+                      self.removeAllSubLayesFormView(vwLines: self.line10)
                   }
                   
-                  self.lblHeading.text = "UPS Solar High Voltage"
+                  let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
+                         
+                  let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor : UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)]
                   
-                  if self.previousMode != "UPS Solar High Voltage"
+                  let attributedString11 = NSMutableAttributedString(string:"UPS Mode" + "\n" , attributes:attrs1 as [NSAttributedString.Key : Any])
+                          
+                  let attributedString21 = NSMutableAttributedString(string:"Mains High Voltage", attributes:attrs2 as [NSAttributedString.Key : Any])
+                          
+                  attributedString11.append(attributedString21)
+                  self.lblHeading.attributedText = attributedString11
+
+                  if self.previousMode != "UPS Mode Mains High Voltage"
                   {
-                      self.previousMode = "UPS Solar High Voltage"
+                      self.previousMode = "UPS Mode Mains High Voltage"
                       for view in self.newVoltageView.subviews {
                           view.removeFromSuperview()
                       }
@@ -3905,10 +4610,8 @@ class DeviceMainSVC: UIViewController {
                   self.setUpUIForUpsSolarMode()
               } else {
                   self.lblByPassValue.isHidden = true
-                  self.atcTimer = self.atcTimer + 2
                   self.lblBatteryPercentage.isHidden = false
                   //self.removeAllSubLayesFormView()
-                  self.gettingErrorCode()
                   self.removeAllSubLayesFormView(vwLines: self.line3)
                   self.removeAllSubLayesFormView(vwLines: self.line4)
                   self.removeAllSubLayesFormView(vwLines: self.line5)
@@ -3918,11 +4621,11 @@ class DeviceMainSVC: UIViewController {
                   self.removeAllSubLayesFormView(vwLines: self.linie1)
                   
                   
-                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.green)
+                  self.makeVerticalAnimatedLine(line: self.line3, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line4, postion: "R", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                   
-                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.green)
-                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.green)
+                  self.makeVerticalAnimatedLine(line: self.line5, postion: "T", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
+                  self.makeHorizotalAnimatedLine(line: self.line6, postion: "L", color: UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0))
                   
                   self.makeVerticalAnimatedLine(line: self.linie1, postion: "T", color: UIColor.orange)
                   self.makeHorizotalAnimatedLine(line: self.line2, postion: "L", color: UIColor.orange)
@@ -3930,7 +4633,8 @@ class DeviceMainSVC: UIViewController {
                   self.makeVerticalAnimatedLine(line: self.line7, postion: "T", color: UIColor.orange)
                   
                   self.removeAllSubLayesFormView(vwLines: self.line8)
-
+                  self.removeAllSubLayesFormView(vwLines: self.line9)
+                  self.removeAllSubLayesFormView(vwLines: self.line10)
 
                   let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 20), NSAttributedString.Key.foregroundColor : UIColor.black]
                          
@@ -3978,7 +4682,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -4019,26 +4723,22 @@ class DeviceMainSVC: UIViewController {
     {
     
         // Mains Solar Mode
-        
+        self.lblNewWalltageForGrid.isHidden = false
         self.imgGrid.image = UIImage(named: "Green_grid")
         self.lblLoadNewWattage.isHidden = true
         self.lblFrequency.isHidden = true
         self.lblTItleFrequency.layer.removeAllAnimations()
         self.lblTItleFrequency.alpha = 1
         self.lblTItleFrequency.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
-        self.lblTItleFrequency.text = "Solar"
-
+        self.lblTItleFrequency.text = "Frequency"
         self.switchVolView.isHidden = true
         self.newVoltageView.isHidden = false
-        self.imgBattery.loadGif(name: "battery")
         self.setUpBatteryAndBoostVoltage()
-        let upsType = self.dicrDta.object(forKey: "setting_ups_type") as? String
-        self.lblTitleSwitch.text = "Voltage"
-        self.mainsGridVw.isHidden = false
-        
+        self.mainsGridVw.isHidden = true
+        self.innerFView.isHidden = false
        
         
-        
+        self.lblByPasstitle.backgroundColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
         self.lblByPasstitle.text = "ByPass"
         self.loadDDView.isHidden = false
         // Charge sharing power
@@ -4050,13 +4750,172 @@ class DeviceMainSVC: UIViewController {
         let status_solar = self.dicrDta.object(forKey: "status_solar") as? String
         let Mains_Ok = self.dicrDta.object(forKey: "Mains_Ok") as? String
         let status_error = self.dicrDta.object(forKey: "status_error") as? String
+        let upsType = self.dicrDta.object(forKey: "setting_ups_type") as? String
+        let bv = self.dicrDta.object(forKey: "bv") as? String
+
+        let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
+        
+        let newPVW = CGFloat((mipv?.toDouble())!)
+        let newWattage = CGFloat((loadwa?.toDouble())!)
+        let charg = newPVW - newWattage
+        self.lblGridNewWattage.text = bw! + " W"
+        self.lblNewWalltageForGrid.text = bw! + " W"
+
+
+        switch (upsType) {
+            case "2":
+                self.lblTitleSwitch.text = "Voltage | N"
+              break;
+            case "3":
+               
+                self.lblTitleSwitch.text = "Voltage | W"
+                break
+            case "1":
+                self.lblTitleSwitch.text = "Voltage | W"
+                break;
+            default:
+                self.lblTitleSwitch.text = "Voltage | N"
+                break
+        }
+        
+        let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+        let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+        var name = (dictSaved?.object(forKey: "name") as? String)
+        let gcdVV = UserDefaults.standard.object(forKey: "gdv") as? String
+        let gcdFlo : Double = Double(gcdVV!)!
+        let gcdvvFlo : Double = Double(bv!)!
+        
+        var newGridCurrent = String()
+        let gridCurrent = self.dicrDta.object(forKey: "setting_grid_charging_current") as? String
+        switch (gridCurrent) {
+            case "5":
+                newGridCurrent = "2.5A"
+              break;
+            case "6":
+                newGridCurrent = "5A"
+                break;
+            case "7":
+                newGridCurrent = "10A"
+                break;
+            case "8":
+                newGridCurrent = "15A"
+                break;
+            case "1":
+                newGridCurrent = "2.5 A"
+                break;
+            case "2":
+                newGridCurrent = "5 A"
+                break;
+            case "3":
+                newGridCurrent = "10 A"
+                break;
+            case "4":
+                newGridCurrent = "15 A"
+                break;
+            default:
+                let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                if dictSaved != nil
+                {
+                    let value = (dictSaved?.object(forKey: "ide") as? String)
+                    let nameT = (dictSaved?.object(forKey: "name") as? String)
+                    newGridCurrent = nameT!
+                }
+                else
+                {
+                    newGridCurrent = "2.5 A"
+                }
+                
+                break
+        }
+
+        
+        if name != newGridCurrent
+        {
+            name = newGridCurrent
+        }
+        
+        if gcd == "true"
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor :UIColor.green]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"E", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string: "/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+        else
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 14), NSAttributedString.Key.foregroundColor :UIColor.red]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"D", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+        
+        
+        if status_mains == "1" && gcd == "true"
+        {
+            if gcdvvFlo <= gcdFlo
+            {
+                self.lblGridNewWattage.isHidden = false
+                self.lblNewWalltageForGrid.isHidden = false
+            }
+            else
+            {
+                self.lblGridNewWattage.isHidden = true
+                self.lblNewWalltageForGrid.isHidden = true
+            }
+        }
+        else
+        {
+            self.lblGridNewWattage.isHidden = true
+            self.lblNewWalltageForGrid.isHidden = true
+        }
+        
         
         self.lblValueOfmainsGrid.text = pvw! + " W"
         
-        if battery_percent == "100.00"
+        let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 24), NSAttributedString.Key.foregroundColor : UIColor.red]
+               
+        let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+        
+        let attributedString11 = NSMutableAttributedString(string:"-"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                
+        let attributedString21 = NSMutableAttributedString(string:" Battery ", attributes:attrs2 as [NSAttributedString.Key : Any])
+                
+        let attributedString31 = NSMutableAttributedString(string:"-", attributes:attrs1 as [NSAttributedString.Key : Any])
+
+        
+        attributedString11.append(attributedString21)
+        attributedString11.append(attributedString31)
+
+        self.lblSimpleBatery.attributedText = attributedString11
+        
+        
+        
+        if battery_percent == "100.00" || battery_percent == "100"
         {
             self.imgBattery.image = UIImage(named: "battery_full")
-            self.lblBatteryPercentage.text = "Charging 100%"
+            self.lblBatteryPercentage.text = "100%"
             self.lblBatteryVoltageHeight.constant = 0
         }
         else
@@ -4081,16 +4940,16 @@ class DeviceMainSVC: UIViewController {
         let ernp = status_error?.contains("2")
         if ernp == true
         {
-            self.lblOnOFF.text = "Switch"
+            self.lblOnOFF.text = "Reset"
         }
         
         
         var strBattryType = String()
         strBattryType = self.appDelegate.batteryName
         
-        self.lblSolarValue.text = pvw! + " W"
+        self.lblSolarValue.text = pvw!.dropLast(3) + " W"
         
-        self.lblGridValue.text = mipv! + " V"
+        self.lblGridValue.text = mipv!.dropLast(3) + " V"
         
         
         self.imgBoost.image = UIImage(named: "boost_CR")
@@ -4107,6 +4966,10 @@ class DeviceMainSVC: UIViewController {
             if strBattryType == "Lithium Ion"
             {
                 self.lblBoostVolateg.text = String("14.6") + " V"
+            }
+            else
+            {
+                self.lblBoostVolateg.text = String(format: "%.2f", (boostValue)) + " V"
             }
         }
         else
@@ -4143,7 +5006,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -4211,7 +5074,8 @@ class DeviceMainSVC: UIViewController {
             self.lblFrequency.text = (inputfre!) + " Hz"
         }
         
-        self.innerFView.isHidden = true
+        self.lblFrequency.isHidden = false
+        self.innerFView.isHidden = false
         
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -4221,7 +5085,12 @@ class DeviceMainSVC: UIViewController {
                     }
                 }
         
-
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    UIView.animate(withDuration: 1) {
+                       // self.firstView.value = Int(freVoltage)
+                        self.gaugeView.updateValueTo(CGFloat((freVoltage)))
+                    }
+                }
       
     }
     
@@ -4229,15 +5098,18 @@ class DeviceMainSVC: UIViewController {
     
     func setUpUIForSolarMode()
     {
+        
         // Charge sharing power
-        self.mainsGridVw.isHidden = true
+        self.lblNewWalltageForGrid.isHidden = true
+        self.lblGridNewWattage.isHidden = true
+        self.mainsGridVw.isHidden = false
         self.line8.isHidden = true
         self.lblTItleFrequency.layer.removeAllAnimations()
         self.lblTItleFrequency.alpha = 1
         self.lblTItleFrequency.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
         self.switchVolView.isHidden = false
         self.newVoltageView.isHidden = true
-        self.lblFrequency.isHidden = false
+        self.lblFrequency.isHidden = true
         let battery_percent = self.dicrDta.object(forKey: "battery_percent") as? String
         let bw = self.dicrDta.object(forKey: "bw") as? String
         let pvw = self.dicrDta.object(forKey: "bw") as? String
@@ -4245,6 +5117,38 @@ class DeviceMainSVC: UIViewController {
         strBattryType = self.appDelegate.batteryName
         let totalCharging: Double = (bw?.toDouble())! //+ (pvw?.toDouble())!
         let intCharing = Int(totalCharging)
+        self.imgGrid.image = UIImage(named: "Green_grid")
+        self.imgGrid.isHidden = false
+
+        let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 24), NSAttributedString.Key.foregroundColor : UIColor.red]
+               
+        let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+        
+        let attributedString11 = NSMutableAttributedString(string:"-"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                
+        let attributedString21 = NSMutableAttributedString(string:" Battery ", attributes:attrs2 as [NSAttributedString.Key : Any])
+                
+        let attributedString31 = NSMutableAttributedString(string:"-", attributes:attrs1 as [NSAttributedString.Key : Any])
+
+        
+        attributedString11.append(attributedString21)
+        attributedString11.append(attributedString31)
+
+        self.lblSimpleBatery.attributedText = attributedString11
+        
+        if battery_percent == "100.00" || battery_percent == "100"
+        {
+            self.imgBattery.image = UIImage(named: "battery_full")
+            self.lblBatteryPercentage.text = "100%"
+            self.lblBatteryVoltageHeight.constant = 0
+        }
+        else
+        {
+            self.lblBatteryVoltageHeight.constant = 0
+            self.imgBattery.loadGif(name: "battery")
+            self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
+        }
+        
         if (battery_percent?.toDouble())! == 100.00
         {
              if strBattryType == "Lithium Ion"
@@ -4308,17 +5212,102 @@ class DeviceMainSVC: UIViewController {
         let ernp = status_error?.contains("2")
         if ernp == true
         {
-            self.lblOnOFF.text = "Switch"
+            self.lblOnOFF.text = "Reset"
         }
         
-        // Grid charging power
-        if battery_percent == "100.00"
+        self.imgGrid.isHidden = false
+        
+        strBattryType = self.appDelegate.batteryName
+        
+        
+        let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+        let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+        var name = (dictSaved?.object(forKey: "name") as? String)
+        
+        var newGridCurrent = String()
+        let gridCurrent = self.dicrDta.object(forKey: "setting_grid_charging_current") as? String
+        switch (gridCurrent) {
+            case "5":
+                newGridCurrent = "2.5A"
+              break;
+            case "6":
+                newGridCurrent = "5A"
+                break;
+            case "7":
+                newGridCurrent = "10A"
+                break;
+            case "8":
+                newGridCurrent = "15A"
+                break;
+            case "1":
+                newGridCurrent = "2.5 A"
+                break;
+            case "2":
+                newGridCurrent = "5 A"
+                break;
+            case "3":
+                newGridCurrent = "10 A"
+                break;
+            case "4":
+                newGridCurrent = "15 A"
+                break;
+            default:
+                let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                if dictSaved != nil
+                {
+                    let value = (dictSaved?.object(forKey: "ide") as? String)
+                    let nameT = (dictSaved?.object(forKey: "name") as? String)
+                    newGridCurrent = nameT!
+                }
+                else
+                {
+                    newGridCurrent = "2.5 A"
+                }
+                
+                break
+        }
+
+        
+        if name != newGridCurrent
         {
-            self.imgGrid.loadGif(name: "comGridImg")
+            name = newGridCurrent
+        }
+        
+        if gcd == "true"
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.green]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"E", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
         }
         else
         {
-            self.imgGrid.loadGif(name: "chargingGrid")
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.red]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"D", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
         }
         
         
@@ -4380,7 +5369,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -4417,43 +5406,6 @@ class DeviceMainSVC: UIViewController {
         }
         
         
-        var inputfre = self.dicrDta.object(forKey: "Output_Frequency_Value") as? String
-        var freVoltage = Float((inputfre?.floatValue.rounded())!)
-        freVoltage = freVoltage - 15.0
-        
-        
-        if Int((inputfre?.floatValue.rounded())!) <= 50
-        {
-            self.lblFrequency.text = "50.00 Hz"
-            freVoltage = 37.0
-            inputfre = String(50.0)
-        }
-        else if Int((inputfre?.floatValue.rounded())!) == 50
-        {
-            self.lblFrequency.text = "50.00 Hz"
-            freVoltage = 37.0
-            inputfre = String(50.0)
-        }
-        else if Int((inputfre?.floatValue.rounded())!) > 60
-        {
-            self.lblFrequency.text = "60.00 Hz"
-            freVoltage = 57.0
-            inputfre = String(60.0)
-        }
-        else
-        {
-            freVoltage = 44.0
-            self.lblFrequency.text = (inputfre!) + " Hz"
-        }
-        
-        
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    UIView.animate(withDuration: 1) {
-                       // self.firstView.value = Int(freVoltage)
-                        self.gaugeView.updateValueTo(CGFloat((freVoltage ?? 0.0)))
-                    }
-                }
        
         self.imgGrid.image = UIImage(named: "Green_grid")
 
@@ -4462,29 +5414,53 @@ class DeviceMainSVC: UIViewController {
     func setUpUIForMainsMode()
     {
         // Mains Solar Mode'
+        self.lblNewWalltageForGrid.isHidden = false
+        self.lblGridNewWattage.isHidden = false
         self.mainsGridVw.isHidden = true
-        self.line8.isHidden = false
         self.lblTItleFrequency.layer.removeAllAnimations()
         self.lblTItleFrequency.alpha = 1
         self.lblTItleFrequency.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
-        self.lblBatteryNewWattage.isHidden = true
+        self.lblBatteryNewWattage.isHidden = false
         self.switchVolView.isHidden = true
         self.newVoltageView.isHidden = false
         self.lblFrequency.isHidden = false
         self.innerFView.isHidden = false
         self.lblLoadNewWattage.isHidden = true
+        self.lblBoostVolateg.isHidden = false
 
-       
+        
+        
+
+        self.lblBatteryVoltage.isHidden = true
+        
+        let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 24), NSAttributedString.Key.foregroundColor : UIColor.red]
+               
+        let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+        
+        let attributedString11 = NSMutableAttributedString(string:"-"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                
+        let attributedString21 = NSMutableAttributedString(string:" Battery ", attributes:attrs2 as [NSAttributedString.Key : Any])
+                
+        let attributedString31 = NSMutableAttributedString(string:"-", attributes:attrs1 as [NSAttributedString.Key : Any])
+
+        
+        attributedString11.append(attributedString21)
+        attributedString11.append(attributedString31)
+
+        self.lblSimpleBatery.attributedText = attributedString11
+        
 
         let mipv = self.dicrDta.object(forKey: "mipv") as? String
         let voltageInt = Float((mipv?.floatValue.rounded())!)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     UIView.animate(withDuration: 1) {
-                        self.secView.value = Int(voltageInt)
+                        self.multiColorChart.value = Int(voltageInt)
                     }
                 }
         
+        
+        self.lblByPasstitle.backgroundColor = UIColor.init(red: 89.0/255.0, green: 152.0/255.0, blue: 26.0/255.0, alpha: 1.0)
         self.setUpBatteryAndBoostVoltage()
         self.lblTItleFrequency.text = "Frequency"
         self.lblByPasstitle.text = "ByPass"
@@ -4497,6 +5473,11 @@ class DeviceMainSVC: UIViewController {
         let status_solar = self.dicrDta.object(forKey: "status_solar") as? String
         let Mains_Ok = self.dicrDta.object(forKey: "Mains_Ok") as? String
         let status_error = self.dicrDta.object(forKey: "status_error") as? String
+        self.lblGridNewWattage.text = bw! + " W"
+
+        self.lblBatteryNewWattage.text = bw! + " W"
+        self.lblNewWalltageForGrid.text = bw! + " W"
+
         
         let upsType = self.dicrDta.object(forKey: "setting_ups_type") as? String
 
@@ -4516,14 +5497,133 @@ class DeviceMainSVC: UIViewController {
                 break
         }
         
+        self.lblBatteryPercentage.isHidden = false
+        let gcd = UserDefaults.standard.object(forKey: "gd") as? String
 
+        
+        if battery_percent == "100.00" || battery_percent == "100"
+        {
+            self.imgBattery.image = UIImage(named: "battery_full")
+            self.lblBatteryPercentage.text = "100%"
+            self.lblBatteryVoltageHeight.constant = 0
+        }
+        else
+        {
+            
+            self.lblBatteryVoltageHeight.constant = 0
+            if gcd == "false"
+            {
+                self.imgBattery.image = UIImage(named: "battery_full")
+            }
+            else
+            {
+                self.imgBattery.loadGif(name: "battery")
+            }
+            self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
+        }
+        
+        
+        
+        
         
         var strBattryType = String()
         strBattryType = self.appDelegate.batteryName
         
-        self.lblSolarValue.text = pvw! + " W"
         
-        self.lblGridValue.text = mipv! + " V"
+        let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+        var name = (dictSaved?.object(forKey: "name") as? String)
+        var newGridCurrent = String()
+        let gridCurrent = self.dicrDta.object(forKey: "setting_grid_charging_current") as? String
+        switch (gridCurrent) {
+            case "5":
+                newGridCurrent = "2.5A"
+              break;
+            case "6":
+                newGridCurrent = "5A"
+                break;
+            case "7":
+                newGridCurrent = "10A"
+                break;
+            case "8":
+                newGridCurrent = "15A"
+                break;
+            case "1":
+                newGridCurrent = "2.5 A"
+                break;
+            case "2":
+                newGridCurrent = "5 A"
+                break;
+            case "3":
+                newGridCurrent = "10 A"
+                break;
+            case "4":
+                newGridCurrent = "15 A"
+                break;
+            default:
+                let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                if dictSaved != nil
+                {
+                    let nameT = (dictSaved?.object(forKey: "name") as? String)
+                    newGridCurrent = nameT!
+                }
+                else
+                {
+                    newGridCurrent = "2.5 A"
+                }
+                
+                break
+        }
+
+        if name != newGridCurrent
+        {
+            name = newGridCurrent
+        }
+        
+        if gcd == "true"
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.green]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"E", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+            
+        }
+        else
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.red]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"D", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+            
+            self.lblBatteryPercentage.text =  battery_percent! + " %"
+        }
+        
+        
+        
+        self.lblSolarValue.text = pvw!.dropLast(3) + " W"
+        
+        self.lblGridValue.text = mipv!.dropLast(3) + " V"
         
         
         self.imgBoost.image = UIImage(named: "boost_CR")
@@ -4540,6 +5640,10 @@ class DeviceMainSVC: UIViewController {
             if strBattryType == "Lithium Ion"
             {
                 self.lblBoostVolateg.text = String("14.6") + " V"
+            }
+            else
+            {
+                self.lblBoostVolateg.text = String(format: "%.2f", (boostValue)) + " V"
             }
         }
         else
@@ -4576,7 +5680,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -4666,13 +5770,28 @@ class DeviceMainSVC: UIViewController {
         self.imgGrid.image = UIImage(named: "Green_grid")
 
         
+    
+        if status_mains == "1" && gcd == "true"
+        {
+            self.lblBatteryNewWattage.isHidden = true
+            self.lblNewWalltageForGrid.isHidden = false
+            self.lblGridNewWattage.isHidden = false
+        }
+        else
+        {
+            self.lblBatteryNewWattage.isHidden = true
+            self.lblNewWalltageForGrid.isHidden = true
+            self.lblGridNewWattage.isHidden = true
+        }
+        
     }
     
     func setUpUIForUpsSolarMode()
     {
         // Mains Solar Mode
+        self.lblGridNewWattage.isHidden = true
         self.mainsGridVw.isHidden = true
-        self.line8.isHidden = true
+        self.lblNewWalltageForGrid.isHidden = true
         self.switchVolView.isHidden = false
         self.newVoltageView.isHidden = true
         self.setUpBatteryAndBoostVoltage()
@@ -4681,6 +5800,9 @@ class DeviceMainSVC: UIViewController {
         self.lblTItleFrequency.alpha = 1
         self.lblTItleFrequency.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
         self.lblTItleFrequency.text = "Frequency"
+        self.lblByPasstitle.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
+      
+
         self.lblByPasstitle.text = "Load"
         self.loadDDView.isHidden = true
         self.lblFrequency.isHidden = false
@@ -4700,6 +5822,100 @@ class DeviceMainSVC: UIViewController {
         let pvw = self.dicrDta.object(forKey: "pvw") as? String
         let loadwa = self.dicrDta.object(forKey: "load_wattage") as? String
         
+        
+        var strBattryType = String()
+        strBattryType = self.appDelegate.batteryName
+        
+        
+        let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+        let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+        var name = (dictSaved?.object(forKey: "name") as? String)
+        var newGridCurrent = String()
+        let gridCurrent = self.dicrDta.object(forKey: "setting_grid_charging_current") as? String
+        switch (gridCurrent) {
+            case "5":
+                newGridCurrent = "2.5A"
+              break;
+            case "6":
+                newGridCurrent = "5A"
+                break;
+            case "7":
+                newGridCurrent = "10A"
+                break;
+            case "8":
+                newGridCurrent = "15A"
+                break;
+            case "1":
+                newGridCurrent = "2.5 A"
+                break;
+            case "2":
+                newGridCurrent = "5 A"
+                break;
+            case "3":
+                newGridCurrent = "10 A"
+                break;
+            case "4":
+                newGridCurrent = "15 A"
+                break;
+            default:
+                let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                if dictSaved != nil
+                {
+                    let value = (dictSaved?.object(forKey: "ide") as? String)
+                    let nameT = (dictSaved?.object(forKey: "name") as? String)
+                    newGridCurrent = nameT!
+                }
+                else
+                {
+                    newGridCurrent = "2.5 A"
+                }
+                
+                break
+        }
+
+        if name != newGridCurrent
+        {
+            name = newGridCurrent
+        }
+        
+        if gcd == "true"
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.green]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"E", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+        else
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.red]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"D", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())! , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+        
+        
         if loadwa == "0.00"
         {
             self.lblLoadNewWattage.isHidden = true
@@ -4717,11 +5933,39 @@ class DeviceMainSVC: UIViewController {
         if newPVW > newWattage
         {
             self.lblBatteryVoltageHeight.constant = 0
-            self.imgBattery.loadGif(name: "battery")
-            self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
+            if battery_percent == "100.00" || battery_percent == "100"
+            {
+                self.imgBattery.image = UIImage(named: "battery_full")
+                self.lblBatteryPercentage.text = "100%"
+                self.lblBatteryVoltageHeight.constant = 0
+            }
+            else
+            {
+                self.lblBatteryVoltageHeight.constant = 0
+                self.imgBattery.loadGif(name: "battery")
+                self.lblBatteryPercentage.text = "Charging " + battery_percent! + " %"
+            }
+            
             let charg = newPVW - newWattage
             self.lblBatteryNewWattage.text = String(format: "%.2f", charg) + " W"
             self.lblBatteryNewWattage.isHidden = false
+            
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 24), NSAttributedString.Key.foregroundColor : UIColor.red]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+            
+            let attributedString11 = NSMutableAttributedString(string:"-"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:" Battery ", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"-", attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblSimpleBatery.attributedText = attributedString11
+
         }
         else
         {
@@ -4733,6 +5977,23 @@ class DeviceMainSVC: UIViewController {
             let charg = newWattage - newPVW
             self.lblBatteryNewWattage.text = String(format: "%.2f", charg) + " W"
             self.lblBatteryNewWattage.isHidden = false
+            
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 24), NSAttributedString.Key.foregroundColor : UIColor.red]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+            
+            let attributedString11 = NSMutableAttributedString(string:"+"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:" Battery ", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"+", attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblSimpleBatery.attributedText = attributedString11
+
             
         }
         let resetSwitch = self.dicrDta.object(forKey: "status_front_switch") as? String
@@ -4750,7 +6011,7 @@ class DeviceMainSVC: UIViewController {
         let ernp = status_error?.contains("2")
         if ernp == true
         {
-            self.lblOnOFF.text = "Switch"
+            self.lblOnOFF.text = "Reset"
         }
         
         
@@ -4758,12 +6019,11 @@ class DeviceMainSVC: UIViewController {
         self.lblByPassValue.isHidden = false
         
         
-        var strBattryType = String()
         strBattryType = self.appDelegate.batteryName
         
-        self.lblSolarValue.text = pvw! + " W"
+        self.lblSolarValue.text = pvw!.dropLast(3) + " W"
         
-        self.lblGridValue.text = mipv! + " V"
+        self.lblGridValue.text = mipv!.dropLast(3) + " V"
         
         
         self.imgBoost.image = UIImage(named: "boost_CR")
@@ -4816,7 +6076,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -4884,8 +6144,11 @@ class DeviceMainSVC: UIViewController {
         
         if status_mains == "1"
         {
+            let errorContains10 = status_error?.contains("10")
+            let errorContains11 = status_error?.contains("11")
+            
             self.imgGrid.image = UIImage(named: "Green_grid")
-            if status_error == "10" && Mains_Ok == "0"
+            if errorContains10 == true && Mains_Ok == "0"
             {
                 self.lblFrequency.isHidden = true
                 let mipv = self.dicrDta.object(forKey: "mipv") as? String
@@ -4900,7 +6163,7 @@ class DeviceMainSVC: UIViewController {
                             }
                         }
             }
-            else if status_error == "11" && Mains_Ok == "0"
+            else if errorContains11 == true && Mains_Ok == "0"
             {
                 self.imgGrid.image = UIImage(named: "Green_grid")
                 self.lblTItleFrequency.blink()
@@ -4936,16 +6199,19 @@ class DeviceMainSVC: UIViewController {
     func setUpUIForUpsLowVoltageMode()
     {
         // Mains Solar Mode
+        self.lblNewWalltageForGrid.isHidden = true
+        self.lblGridNewWattage.isHidden = true
         self.mainsGridVw.isHidden = true
         self.switchVolView.isHidden = false
         self.newVoltageView.isHidden = true
         self.setUpBatteryAndBoostVoltage()
         self.lblTitleSwitch.text = "Switch"
+        self.lblByPasstitle.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
         self.lblByPasstitle.text = "Load"
         self.loadDDView.isHidden = true
         self.lblFrequency.isHidden = true
         self.line8.isHidden = true
-       
+
         
         
         let resetSwitch = self.dicrDta.object(forKey: "status_front_switch") as? String
@@ -4974,56 +6240,44 @@ class DeviceMainSVC: UIViewController {
         let voltageInt = Float((mipv?.floatValue.rounded())!)
         let status_mains = self.dicrDta.object(forKey: "status_mains") as? String
 
-        if (status_error == "10" && status_mains == "1") {
+        let errorContains10 = status_error?.contains("10")
+        let errorContains11 = status_error?.contains("11")
+        
+        if (errorContains10 == true && status_mains == "1") {
             self.lblHeading.text = "UPS Low Voltage"
             self.imgGrid.image = UIImage(named: "Green_grid")
-
-            if self.mipvGlobalValue != mipv!
-            {
-                self.mipvGlobalValue = mipv!
-                self.lblTItleFrequency.blink()
-                self.lblTItleFrequency.backgroundColor = UIColor.red
-                self.lblTItleFrequency.text = "Low Voltage"
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            UIView.animate(withDuration: 1) {
-                                self.firstView.value = Int(voltageInt)
-                            }
+            self.lblTItleFrequency.alpha = 1
+            self.lblTItleFrequency.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
+          
+            
+            self.lblTItleFrequency.blink()
+            self.lblTItleFrequency.backgroundColor = UIColor.red
+            self.lblTItleFrequency.text = "Low Voltage"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        UIView.animate(withDuration: 1) {
+                            self.firstView.value = Int(voltageInt)
                         }
-                
-            }
-            else
-            {
-                self.mipvGlobalValue = mipv!
-                self.lblTItleFrequency.blink()
-                self.lblTItleFrequency.backgroundColor = UIColor.red
-                self.lblTItleFrequency.text = "Low Voltage"
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            UIView.animate(withDuration: 1) {
-                                self.firstView.value = Int(voltageInt)
-                            }
-                        }
-            }
-          } else if (status_error == "11" && status_mains == "1") {
+                    }
+            
+          } else if (errorContains11 == true && status_mains == "1") {
               self.imgGrid.image = UIImage(named: "Green_grid")
 
               self.lblHeading.text = "UPS High Voltage"
-              if self.mipvGlobalValue != mipv!
-              {
-                  self.mipvGlobalValue = mipv!
-                  
-                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                              UIView.animate(withDuration: 1) {
-                                  self.secView.value = Int(voltageInt)
-                              }
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                          UIView.animate(withDuration: 1) {
+                              self.secView.value = Int(voltageInt)
                           }
-              }
+                      }
+            
+              self.lblTItleFrequency.alpha = 1
+              self.lblTItleFrequency.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
             
               self.lblTItleFrequency.blink()
               self.lblTItleFrequency.backgroundColor = UIColor.red
               self.lblTItleFrequency.text = "High Voltage"
           }
             else
-        {
+            {
                 self.imgGrid.image = UIImage(named: "Red_Grid")
 
             }
@@ -5044,19 +6298,135 @@ class DeviceMainSVC: UIViewController {
 
         self.lblByPassValue.text = loadwa! + " W"
         self.lblByPassValue.isHidden = false
+       
+        if battery_percent == "100.00" || battery_percent == "100"
+        {
+            self.imgBattery.image = UIImage(named: "battery_full")
+            self.lblBatteryPercentage.text = "100%"
+            self.lblBatteryVoltageHeight.constant = 0
+        }
+        else
+        {
+            self.imgBattery.loadGif(name: "new_battery_discarging")
+            self.lblBatteryPercentage.text = "Discharging..."
+            self.lblBatteryVoltageHeight.constant = 21
+            self.lblBatteryVoltage.text = bvValue! + " V"
+        }
         
-        self.imgBattery.loadGif(name: "new_battery_discarging")
-        self.lblBatteryPercentage.text = "Discharging..."
-        self.lblBatteryVoltageHeight.constant = 21
-        self.lblBatteryVoltage.text = bvValue! + " V"
-        
-        
+       
         var strBattryType = String()
         strBattryType = self.appDelegate.batteryName
         
-        self.lblSolarValue.text = "0.00 W"
         
-        self.lblGridValue.text = mipv! + " V"
+        let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+        let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+        var name = (dictSaved?.object(forKey: "name") as? String)
+        var newGridCurrent = String()
+        let gridCurrent = self.dicrDta.object(forKey: "setting_grid_charging_current") as? String
+        switch (gridCurrent) {
+            case "5":
+                newGridCurrent = "2.5A"
+              break;
+            case "6":
+                newGridCurrent = "5A"
+                break;
+            case "7":
+                newGridCurrent = "10A"
+                break;
+            case "8":
+                newGridCurrent = "15A"
+                break;
+            case "1":
+                newGridCurrent = "2.5 A"
+                break;
+            case "2":
+                newGridCurrent = "5 A"
+                break;
+            case "3":
+                newGridCurrent = "10 A"
+                break;
+            case "4":
+                newGridCurrent = "15 A"
+                break;
+            default:
+                let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                if dictSaved != nil
+                {
+                    let value = (dictSaved?.object(forKey: "ide") as? String)
+                    let nameT = (dictSaved?.object(forKey: "name") as? String)
+                    newGridCurrent = nameT!
+                }
+                else
+                {
+                    newGridCurrent = "2.5 A"
+                }
+                
+                break
+        }
+
+        if name != newGridCurrent
+        {
+            name = newGridCurrent
+        }
+        
+        if gcd == "true"
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.green]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"E", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+        else
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.red]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"D", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+
+        let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 24), NSAttributedString.Key.foregroundColor : UIColor.red]
+               
+        let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+        
+        let attributedString11 = NSMutableAttributedString(string:"+"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                
+        let attributedString21 = NSMutableAttributedString(string:" Battery ", attributes:attrs2 as [NSAttributedString.Key : Any])
+                
+        let attributedString31 = NSMutableAttributedString(string:"+", attributes:attrs1 as [NSAttributedString.Key : Any])
+
+        
+        attributedString11.append(attributedString21)
+        attributedString11.append(attributedString31)
+
+        self.lblSimpleBatery.attributedText = attributedString11
+        
+        strBattryType = self.appDelegate.batteryName
+        
+        self.lblSolarValue.text = "0 W"
+        
+        self.lblGridValue.text = mipv!.dropLast(3) + " V"
         
         
         self.imgBoost.image = UIImage(named: "boost_CR")
@@ -5109,7 +6479,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -5180,6 +6550,8 @@ class DeviceMainSVC: UIViewController {
     func setUpUIForUpsMode()
     {
         // Mains Solar Mode
+        self.lblNewWalltageForGrid.isHidden = true
+        self.lblGridNewWattage.isHidden = true
         self.mainsGridVw.isHidden = true
         self.lblTItleFrequency.layer.removeAllAnimations()
         self.lblTItleFrequency.alpha = 1
@@ -5189,12 +6561,13 @@ class DeviceMainSVC: UIViewController {
         self.setUpBatteryAndBoostVoltage()
         self.lblTitleSwitch.text = "Switch"
         self.lblTItleFrequency.text = "Frequency"
+        self.lblByPasstitle.backgroundColor = UIColor.init(red: 27.0/255.0, green: 77.0/255.0, blue: 130.0/255.0, alpha: 1.0)
         self.lblByPasstitle.text = "Load"
         self.loadDDView.isHidden = true
         self.lblFrequency.isHidden = false
         self.line8.isHidden = true
-        
-        
+        self.lblBatteryVoltage.isHidden = false
+
 
         
         // Charge sharing power
@@ -5216,11 +6589,130 @@ class DeviceMainSVC: UIViewController {
         self.lblBatteryNewWattage.text = loadwa! + " W"
         self.lblBatteryNewWattage.isHidden = false
         
-        self.imgBattery.loadGif(name: "new_battery_discarging")
-        self.lblBatteryPercentage.text = "Discharging..."
-        self.lblBatteryVoltageHeight.constant = 21
-        self.lblBatteryVoltage.text = bvValue! + " V"
+        if battery_percent == "100.00" || battery_percent == "100"
+        {
+            self.imgBattery.image = UIImage(named: "battery_full")
+            self.lblBatteryPercentage.text = "100%"
+            self.lblBatteryVoltageHeight.constant = 0
+        }
+        else
+        {
+            self.imgBattery.loadGif(name: "new_battery_discarging")
+            self.lblBatteryPercentage.text = "Discharging..."
+            self.lblBatteryVoltageHeight.constant = 21
+            self.lblBatteryVoltage.text = bvValue! + " V"
+            
+        }
         
+        var strBattryType = String()
+        strBattryType = self.appDelegate.batteryName
+        
+        
+        let gcd = UserDefaults.standard.object(forKey: "gd") as? String
+        let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+        var name = (dictSaved?.object(forKey: "name") as? String)
+        var newGridCurrent = String()
+        let gridCurrent = self.dicrDta.object(forKey: "setting_grid_charging_current") as? String
+        switch (gridCurrent) {
+            case "5":
+                newGridCurrent = "2.5A"
+              break;
+            case "6":
+                newGridCurrent = "5A"
+                break;
+            case "7":
+                newGridCurrent = "10A"
+                break;
+            case "8":
+                newGridCurrent = "15A"
+                break;
+            case "1":
+                newGridCurrent = "2.5 A"
+                break;
+            case "2":
+                newGridCurrent = "5 A"
+                break;
+            case "3":
+                newGridCurrent = "10 A"
+                break;
+            case "4":
+                newGridCurrent = "15 A"
+                break;
+            default:
+                let dictSaved = UserDefaults.standard.object(forKey: "pValue") as? NSDictionary
+                if dictSaved != nil
+                {
+                    let value = (dictSaved?.object(forKey: "ide") as? String)
+                    let nameT = (dictSaved?.object(forKey: "name") as? String)
+                    newGridCurrent = nameT!
+                }
+                else
+                {
+                    newGridCurrent = "2.5 A"
+                }
+                
+                break
+        }
+
+        if name != newGridCurrent
+        {
+            name = newGridCurrent
+        }
+        
+        if gcd == "true"
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.green]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"E", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())!  , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+        else
+        {
+            let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+                   
+            let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor :UIColor.red]
+            
+            let attributedString11 = NSMutableAttributedString(string:"Grid/"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                    
+            let attributedString21 = NSMutableAttributedString(string:"D", attributes:attrs2 as [NSAttributedString.Key : Any])
+                    
+            let attributedString31 = NSMutableAttributedString(string:"/" + (name?.dropLast())! , attributes:attrs1 as [NSAttributedString.Key : Any])
+
+            
+            attributedString11.append(attributedString21)
+            attributedString11.append(attributedString31)
+
+            self.lblTItleGrid.attributedText = attributedString11
+        }
+        
+        let attrs1 = [NSAttributedString.Key.font : UIFont(name: "Helvetica Bold", size: 24), NSAttributedString.Key.foregroundColor : UIColor.red]
+               
+        let attrs2 = [NSAttributedString.Key.font : UIFont(name: "Helvetica", size: 14), NSAttributedString.Key.foregroundColor : UIColor.white]
+        
+        let attributedString11 = NSMutableAttributedString(string:"+"  , attributes:attrs1 as [NSAttributedString.Key : Any])
+                
+        let attributedString21 = NSMutableAttributedString(string:" Battery ", attributes:attrs2 as [NSAttributedString.Key : Any])
+                
+        let attributedString31 = NSMutableAttributedString(string:"+", attributes:attrs1 as [NSAttributedString.Key : Any])
+
+        
+        attributedString11.append(attributedString21)
+        attributedString11.append(attributedString31)
+
+        self.lblSimpleBatery.attributedText = attributedString11
+        
+
         
         let resetSwitch = self.dicrDta.object(forKey: "status_front_switch") as? String
         if resetSwitch == "0"
@@ -5237,15 +6729,14 @@ class DeviceMainSVC: UIViewController {
         let ernp = status_error?.contains("2")
         if ernp == true
         {
-            self.lblOnOFF.text = "Switch"
+            self.lblOnOFF.text = "Reset"
         }
         
-        var strBattryType = String()
         strBattryType = self.appDelegate.batteryName
         
-        self.lblSolarValue.text = "0.00 W"
+        self.lblSolarValue.text = "0 W"
         
-        self.lblGridValue.text = "0.00 V"
+        self.lblGridValue.text = "0 V"
         
         
         self.imgBoost.image = UIImage(named: "boost_CR")
@@ -5298,7 +6789,7 @@ class DeviceMainSVC: UIViewController {
         let atcActive = self.dicrDta.object(forKey: "FC_ATC_Sensor") as? String
         if atcActive == "1"
         {
-            if self.atcTimer > 12
+            if self.atcTimer > 15
             {
                 
                 self.atcTimer = 0
@@ -5381,8 +6872,6 @@ class DeviceMainSVC: UIViewController {
     func gettingErrorCode()
     {
         
-       
-        
         let error = self.dicrDta.object(forKey: "status_error") as? String
         if error == nil || error == "" || error == " " || ((error?.isEmpty) == nil)
         {
@@ -5407,7 +6896,8 @@ class DeviceMainSVC: UIViewController {
                         self.view.makeToast(ferror)
                     }
                     
-                    
+                    let systemSoundID: SystemSoundID = 1315
+                    AudioServicesPlaySystemSound (systemSoundID)
                 }
                 
                 if self.atcTimer > 15
@@ -5419,7 +6909,10 @@ class DeviceMainSVC: UIViewController {
                     if cpV < 0
                     {
                         self.view.makeToast("The temperature sensor is not installed; please check and install it properly to get the values")
+                        let systemSoundID: SystemSoundID = 1315
+                        AudioServicesPlaySystemSound (systemSoundID)
                     }
+                    
                 }
                 return
             }
@@ -5451,7 +6944,8 @@ class DeviceMainSVC: UIViewController {
                             completeError = completeError + "The UPS front switch is off. Please turn on the front switch manually."
                             self.view.makeToast(completeError)
                         }
-                        
+                        let systemSoundID: SystemSoundID = 1315
+                        AudioServicesPlaySystemSound (systemSoundID)
                         
                     }
                     else
@@ -5672,7 +7166,7 @@ class DeviceMainSVC: UIViewController {
                        self.getErrorString = "Solar High Voltage"
                        self.highAlert = false
                    }else if (error == "13"){
-                       self.getErrorString = "Solar High Current"
+                       self.getErrorString = "Solar high current is detected from the panels. Please check the panels in string and reduce the panel size. Wait for 3.5 minutes to restart the PCU"
                        self.highAlert = false
                    }
                    else if (error == "14"){

@@ -17,7 +17,7 @@ class GaugeLOWHIgh : UIView
     var innerBezelWidth: CGFloat = 5
     var insideColor = UIColor.white
     var segmentWidth: CGFloat = 20
-    var segmentColors = [ UIColor.systemRed, UIColor.init(red: 0, green: 128.0/255.0, blue: 0.0, alpha: 1.0)]
+    var segmentColors = [ UIColor.orange, UIColor.init(red: 0, green: 128.0/255.0, blue: 0.0, alpha: 1.0)]
     var totalAngle: CGFloat = 180
     var rotation: CGFloat = -90
     

@@ -7,16 +7,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "695E2EAD-E96F-4C7C-8158-51D8741D252B"
+            uuid = "187E5116-EA73-43E3-BBB0-2F230DB3CD20"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Vastika/Controller/Home/SettingVC.swift"
+            filePath = "Vastika/Controller/Home/DeviceMainSVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "429"
-            endingLineNumber = "429"
-            landmarkName = "setUpBLEData()"
+            startingLineNumber = "4963"
+            endingLineNumber = "4963"
+            landmarkName = "setUpUIForMainsSolarMode()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
